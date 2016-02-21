@@ -193,6 +193,17 @@ public class convertImg extends JFrame implements ActionListener{
 				result[(y+1)*(w/2 + w%2) - 1] = holder;
 			}
 		}
+		if (odd_height) {
+			for (int x = 0; x < (w/2); x++) {
+				holder = 0;
+				holder += values[(h-1) * w + 2*x];
+				holder += values[(h-1) * w + 2*x + 1];
+				result[(h/2)*(w/2 + w%2) + x] = holder;
+			}
+			if (odd_width) {
+				result[(w/2 + w%2)*(h/2 + h%2) - 1] = values[w*h - 1];
+			}
+		}
 		return result;
 	}
 	
