@@ -3,6 +3,7 @@ package Sample;
 import java.io.File;
 import java.io.IOException;
 import java.awt.AWTException;
+import java.awt.Font;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.PixelGrabber;
@@ -28,8 +29,14 @@ public class convertImg extends JFrame implements ActionListener{
 	    
         m_panelImgInput = new IMGPanel();        
         m_panelImgInput.setLocation(10, 10);
-        m_panelImgInput.setSize(400, 300);
+        m_panelImgInput.setSize(400, 400);
 	    totalGUI.add(m_panelImgInput);
+	    
+	    JLabel img_label = new JLabel();
+	    img_label.setText("Original Picture");
+	    img_label.setBounds(110, 420, 200, 30);
+	    img_label.setFont(new Font("Verdana", 1, 16));
+	    totalGUI.add(img_label);
 	    
 	    // create a panel for buttons
 	    JPanel panelButtons = new JPanel();
@@ -39,19 +46,37 @@ public class convertImg extends JFrame implements ActionListener{
         totalGUI.add(panelButtons);
         
         m_panelImgOutputY = new IMGPanel();
-        m_panelImgOutputY.setLocation(530, 10);
-        m_panelImgOutputY.setSize(400, 300);
+        m_panelImgOutputY.setLocation(540, 10);
+        m_panelImgOutputY.setSize(200, 200);
         totalGUI.add(m_panelImgOutputY);
+        
+        JLabel y_label = new JLabel();
+	    y_label.setText("Y Component");
+	    y_label.setBounds(590, 220, 100, 20);
+	    y_label.setFont(new Font("Verdana", 1, 12));
+	    totalGUI.add(y_label);
 
         m_panelImgOutputU = new IMGPanel();
-        m_panelImgOutputU.setLocation(940, 10);
-        m_panelImgOutputU.setSize(400, 300);
+        m_panelImgOutputU.setLocation(750, 10);
+        m_panelImgOutputU.setSize(200, 200);
         totalGUI.add(m_panelImgOutputU);
+        
+        JLabel u_label = new JLabel();
+	    u_label.setText("U Component");
+	    u_label.setBounds(800, 220, 100, 20);
+	    u_label.setFont(new Font("Verdana", 1, 12));
+	    totalGUI.add(u_label);
 
         m_panelImgOutputV = new IMGPanel();
-        m_panelImgOutputV.setLocation(1350, 10);
-        m_panelImgOutputV.setSize(400, 300);
+        m_panelImgOutputV.setLocation(960, 10);
+        m_panelImgOutputV.setSize(200, 200);
         totalGUI.add(m_panelImgOutputV);
+        
+        JLabel v_label = new JLabel();
+	    v_label.setText("V Component");
+	    v_label.setBounds(1010, 220, 100, 20);
+	    v_label.setFont(new Font("Verdana", 1, 12));
+	    totalGUI.add(v_label);
 	    
 	    m_btOpen = new JButton("OPEN");
 	    m_btOpen.setLocation(0, 0);
@@ -166,14 +191,14 @@ public class convertImg extends JFrame implements ActionListener{
     }
 	
     private static void createAndShowGUI() {
-        JFrame.setDefaultLookAndFeelDecorated(true);
+        JFrame.setDefaultLookAndFeelDecorated(false);
         JFrame frame = new JFrame("JPEG Compression");
 
         //Create and set up the content pane.
         convertImg demo = new convertImg();
         frame.setContentPane(demo.createContentPane());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1770, 360);
+        frame.setSize(1200, 500);
         frame.setVisible(true);
     }
     

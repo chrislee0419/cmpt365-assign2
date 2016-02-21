@@ -2,6 +2,8 @@ package Sample;
 import java.lang.Math;
 
 public class Transform {
+
+	private static double sq2 = 1/Math.sqrt(2);
 	
 	public static Matrix inv_dctransform(Matrix input) {
 		Matrix dct = createDCT();
@@ -22,7 +24,6 @@ public class Transform {
 	// Private
 	private static Matrix createDCT() {
 		double[][] dct = new double[8][8];
-		double sq2 = 1/Math.sqrt(2);
 		for (int i = 0; i < 8; i++){
 			for (int j = 0; j < 8; j++){
 				if (i == 0)
