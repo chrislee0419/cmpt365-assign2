@@ -3,6 +3,7 @@ package Sample;
 import java.io.File;
 import java.io.IOException;
 import java.awt.AWTException;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -30,6 +31,7 @@ public class convertImg extends JFrame implements ActionListener{
         m_panelImgInput = new IMGPanel();        
         m_panelImgInput.setLocation(10, 10);
         m_panelImgInput.setSize(400, 400);
+        m_panelImgInput.setBorder(BorderFactory.createLineBorder(Color.black));
 	    totalGUI.add(m_panelImgInput);
 	    
 	    JLabel img_label = new JLabel();
@@ -48,6 +50,7 @@ public class convertImg extends JFrame implements ActionListener{
         m_panelImgOutputY = new IMGPanel();
         m_panelImgOutputY.setLocation(540, 10);
         m_panelImgOutputY.setSize(200, 200);
+        m_panelImgOutputY.setBorder(BorderFactory.createLineBorder(Color.black));
         totalGUI.add(m_panelImgOutputY);
         
         JLabel y_label = new JLabel();
@@ -59,6 +62,7 @@ public class convertImg extends JFrame implements ActionListener{
         m_panelImgOutputU = new IMGPanel();
         m_panelImgOutputU.setLocation(750, 10);
         m_panelImgOutputU.setSize(200, 200);
+        m_panelImgOutputU.setBorder(BorderFactory.createLineBorder(Color.black));
         totalGUI.add(m_panelImgOutputU);
         
         JLabel u_label = new JLabel();
@@ -70,6 +74,7 @@ public class convertImg extends JFrame implements ActionListener{
         m_panelImgOutputV = new IMGPanel();
         m_panelImgOutputV.setLocation(960, 10);
         m_panelImgOutputV.setSize(200, 200);
+        m_panelImgOutputV.setBorder(BorderFactory.createLineBorder(Color.black));
         totalGUI.add(m_panelImgOutputV);
         
         JLabel v_label = new JLabel();
@@ -100,6 +105,107 @@ public class convertImg extends JFrame implements ActionListener{
 	    return totalGUI;
 	}
 	
+	/////////////////////
+	// CONVERSION CODE //
+	/////////////////////
+	
+	private void RGBtoYUV() {
+		if(m_imgInput == null)
+    		return;
+    	int w = m_imgInput.getWidth(null);
+    	int h = m_imgInput.getHeight(null);
+    	
+    	// calculate YUV values
+    	int YValues[] = new int[w*h];
+        int UValues[] = new int[w*h];
+        int VValues[] = new int[w*h];
+    	int inputValues[] = new int[w*h];
+    	PixelGrabber grabber = new PixelGrabber(m_imgInput.getSource(), 0, 0, w, h, inputValues, 0, w);
+        try{
+          if(grabber.grabPixels() != true){
+            try{
+        	  throw new AWTException("Grabber returned false: " + grabber.status());
+        	}catch (Exception e) {};
+          }
+        } catch (InterruptedException e) {};
+        
+        int red,green, blue; 
+        for (int index = 0; index < h * w; ++index){
+        	red = ((inputValues[index] & 0x00ff0000) >> 16);
+        	green =((inputValues[index] & 0x0000ff00) >> 8);
+        	blue = ((inputValues[index] & 0x000000ff) );
+        	YValues[index] = (int)((0.299 * (float)red) + (0.587 * (float)green) + (0.114 * (float)blue));
+            UValues[index] = (int)((-0.299* (float)red) + (-0.587* (float)green) + (0.866 * (float)blue));
+            VValues[index] = (int)((0.701 * (float)red) + (-0.587* (float)green) + (-0.114* (float)blue));
+        }
+        
+        // subsample the U and V chrominance components
+        int[] u_values_sub = subsample(UValues, w, h);
+        int[] v_values_sub = subsample(VValues, w, h);
+        int w_sub = w/2 + w%2;
+        int h_sub = h/2 + h%2;
+    	
+        // write Y values to the first output image
+        m_imgOutputY = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
+    	WritableRaster raster = (WritableRaster) m_imgOutputY.getData();
+    	raster.setPixels(0, 0, w, h, YValues);
+    	m_imgOutputY.setData(raster);
+    	m_panelImgOutputY.setBufferedImage(m_imgOutputY);	
+
+        // write U values to the second output image
+        m_imgOutputU = new BufferedImage(w_sub, h_sub, BufferedImage.TYPE_BYTE_GRAY);
+        raster = (WritableRaster) m_imgOutputU.getData();
+        raster.setPixels(0, 0, w_sub, h_sub, u_values_sub);
+        m_imgOutputU.setData(raster);
+        m_panelImgOutputU.setBufferedImage(m_imgOutputU);    
+
+        // write V values to the third output image
+        m_imgOutputV = new BufferedImage(w_sub, h_sub, BufferedImage.TYPE_BYTE_GRAY);
+        raster = (WritableRaster) m_imgOutputV.getData();
+        raster.setPixels(0, 0, w_sub, h_sub, v_values_sub);
+        m_imgOutputV.setData(raster);
+        m_panelImgOutputV.setBufferedImage(m_imgOutputV);
+	}
+
+	// takes an average of 2 by 2 blocks to reduce chroma resolution
+	// divide width and height by 2, take ceiling
+	private int[] subsample(int[] values, int w, int h) {
+		boolean odd_width = (w % 2 == 1);
+		boolean odd_height = (h % 2 == 1);
+		int[] result = new int[(w/2 + w%2) * (h/2 + h%2)];
+		int holder;
+		
+		for (int y = 0; y < (h/2); y++) {
+			for (int x = 0; x < (w/2); x++) {
+				holder = 0;
+				holder += values[x*2 + (y*2)*w];
+				holder += values[x*2 + (y*2)*w + 1];
+				holder += values[x*2 + (y*2 + 1)*w];
+				holder += values[x*2 + (y*2 + 1)*w + 1];
+				holder /= 4;
+				result[x + y*(w/2 + w%2)] = holder;
+			}
+			if (odd_width) {
+				holder = 0;
+				holder += values[(y+1)*w - 1];
+				holder += values[(y+2)*w - 1];
+				holder /= 2;
+				result[(y+1)*(w/2 + w%2) - 1] = holder;
+			}
+		}
+		return result;
+	}
+	
+	private int[] expandSubsample(int[] values, int w, int h) {
+		// placeholder
+		return new int[1];
+	}
+	
+	private void YUVtoRGB() {
+		// placeholder
+	}
+	
+	
     // This is the new ActionPerformed Method.
     // It catches any events with an ActionListener attached.
     // Using an if statement, we can determine which button was pressed
@@ -120,57 +226,9 @@ public class convertImg extends JFrame implements ActionListener{
                  }
             }
         }
-        // convert RGB to Y 
+        // convert RGB to YUV 
         else if(evnt.getSource() == m_btConvert){
-        	if(m_imgInput == null)
-        		return;
-        	int w = m_imgInput.getWidth(null);
-        	int h = m_imgInput.getHeight(null);
-        	
-        	// calculate Y values
-        	int YValues[] = new int[w*h];
-            int UValues[] = new int[w*h];
-            int VValues[] = new int[w*h];
-        	int inputValues[] = new int[w*h];
-        	PixelGrabber grabber = new PixelGrabber(m_imgInput.getSource(), 0, 0, w, h, inputValues, 0, w);
-            try{
-              if(grabber.grabPixels() != true){
-                try{
-            	  throw new AWTException("Grabber returned false: " + grabber.status());
-            	}catch (Exception e) {};
-              }
-            } catch (InterruptedException e) {};
-            
-            int red,green, blue; 
-            for (int index = 0; index < h * w; ++index){
-            	red = ((inputValues[index] & 0x00ff0000) >> 16);
-            	green =((inputValues[index] & 0x0000ff00) >> 8);
-            	blue = ((inputValues[index] & 0x000000ff) );
-            	YValues[index] = (int)((0.299 * (float)red) + (0.587 * (float)green) + (0.114 * (float)blue));
-                UValues[index] = (int)((-0.299* (float)red) + (-0.587* (float)green) + (0.866 * (float)blue));
-                VValues[index] = (int)((0.701 * (float)red) + (-0.587* (float)green) + (-0.114* (float)blue));
-            }
-        	
-            // write Y values to the first output image
-            m_imgOutputY = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
-        	WritableRaster raster = (WritableRaster) m_imgOutputY.getData();
-        	raster.setPixels(0, 0, w, h, YValues);
-        	m_imgOutputY.setData(raster);
-        	m_panelImgOutputY.setBufferedImage(m_imgOutputY);	
-
-            // write U values to the second output image
-            m_imgOutputU = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
-            raster = (WritableRaster) m_imgOutputU.getData();
-            raster.setPixels(0, 0, w, h, UValues);
-            m_imgOutputU.setData(raster);
-            m_panelImgOutputU.setBufferedImage(m_imgOutputU);    
-
-            // write V values to the third output image
-            m_imgOutputV = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
-            raster = (WritableRaster) m_imgOutputV.getData();
-            raster.setPixels(0, 0, w, h, VValues);
-            m_imgOutputV.setData(raster);
-            m_panelImgOutputV.setBufferedImage(m_imgOutputV);    
+        	RGBtoYUV();
         }
         // button SAVE is clicked
         else if(evnt.getSource() == m_btSave){
