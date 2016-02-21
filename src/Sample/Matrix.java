@@ -30,7 +30,7 @@ public class Matrix {
 	
 	// copy a matrix
 	public Matrix(Matrix M) {
-		double[][] mat2 = M.to2DArray();
+		double[][] mat2 = M.matrix1Dto2DArray();
 		mat = mat2;
 	}
 	
