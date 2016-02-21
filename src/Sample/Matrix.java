@@ -10,8 +10,6 @@ public class Matrix {
 	// - mat[0][0] represents the top left corner of the block
 	
 	private double[][] mat;
-	private int true_width;
-	private int true_height;
 	
 	//////////////////
 	// CONSTRUCTORS //
@@ -32,7 +30,7 @@ public class Matrix {
 	
 	// copy a matrix
 	public Matrix(Matrix M) {
-		double[][] mat2 = M.toArray();
+		double[][] mat2 = M.to2DArray();
 		mat = mat2;
 	}
 	
@@ -43,12 +41,12 @@ public class Matrix {
 	// CONVERSION
 	
 	// returns the matrix in 2D array form
-	public double[][] to2DArray() {
+	public double[][] matrix1Dto2DArray() {
 		return mat;
 	}
 	
 	// returns the matrix in 1D array form
-	public double[] to1DArray() {
+	public double[] matrix1Dto1DArray() {
 		double[] result = new double[64];
 		int x, y;
 		for (int i = 0; i < 64; i++) {
@@ -61,12 +59,12 @@ public class Matrix {
 	}
 	
 	// 1D array to 2D matrix
-	public static Matrix[][] arrayTo2DMatrix(double[] arr, int width, int height) {
-		int w; = (int)Math.ceil(width / 8);
+	public static Matrix[][] array1DTo2DMatrix(double[] arr, int width, int height) {
+		int w = (int)Math.ceil(width / 8);
 		int h = (int)Math.ceil(height / 8);
 		int x_overhang = (w * 8) - width;
 		int y_overhang = (h * 8) - height;
-		int j_max, i_max;
+		int j_max, i_max, index;
 		Matrix[][] result = new Matrix[h][w];
 		for (int y = 0; y < h; y++) {
 			if (y == h-1) {
@@ -94,7 +92,7 @@ public class Matrix {
 	}
 	
 	// returns an array with the elements of a square 2D matrix
-	public static double[] 2DMatrixToArray(Matrix[][] A) {
+	public static double[] matrix2DTo1DArray(Matrix[][] A) {
 		int length = A[0].length;
 		double[] result = new double[64 * length * length];
 		int index;
@@ -108,6 +106,7 @@ public class Matrix {
 				}
 			}
 		}
+		return result;
 	}
 	
 	
@@ -187,7 +186,7 @@ public class Matrix {
 	
 	// ADDITION
 	
-	// static form of addition that returns a new Matrix
+	// static form of addition that returns a new matrix
 	public static Matrix add(Matrix A, Matrix B) {
 		double[][] arr = new double[8][8];
 		for (int y = 0; y < 8; y++) {
@@ -210,7 +209,7 @@ public class Matrix {
 	
 	// SUBTRACTION
 	
-	// static form of subtraction that returns a new Matrix
+	// static form of subtraction that returns a new matrix
 	public static Matrix subtract(Matrix A, Matrix B) {
 		double[][] arr = new double[8][8];
 		for (int y = 0; y < 8; y++) {
@@ -233,7 +232,7 @@ public class Matrix {
 	
 	// MULTIPLICATION
 	
-	// static form of multiplication that returns a new Matrix
+	// static form of multiplication that returns a new matrix
 	public static Matrix multiply(Matrix A, Matrix B) {
 		double[][] arr = new double[8][8];
 		for (int y = 0; y < 8; y++) {
@@ -254,8 +253,29 @@ public class Matrix {
 		}
 	}
 	
-	// element-wise multiplication
-	public void elementwiseMultiplication(double scalar) {
+	// static form of element-wise multiplication that returns a new matrix
+	public static Matrix elementwiseMultiply(Matrix A, Matrix B) {
+		double[][] arr = new double[8][8];
+		for (int y = 0; y < 8; y++) {
+			for (int x = 0; x < 8; x++) {
+				arr[y][x] = A.getElement(x, y) * B.getElement(x, y);
+			}
+		}
+		Matrix result = new Matrix(arr);
+		return result;
+	}
+
+	// element-wise multiplication on a matrix
+	public void elementwiseMultiply(Matrix A) {
+		for (int y = 0; y < 8; y++) {
+			for (int x = 0; x < 8; x++) {
+				mat[y][x] *= A.getElement(x, y);
+			}
+		}
+	}
+	
+	// element-wise scalar multiplication
+	public void scalarMultiply(double scalar) {
 		for (int y = 0; y < 8; y++) {
 			for (int x = 0; x < 8; x++) {
 				mat[y][x] *= scalar;
@@ -265,18 +285,39 @@ public class Matrix {
 	
 	// DIVISION
 	
-	// element-wise division
-	public void elementwiseDivision(double scalar) {
+	// static form of element-wise division that returns a new matrix
+		public static Matrix elementwiseDivide(Matrix A, Matrix B) {
+			double[][] arr = new double[8][8];
+			for (int y = 0; y < 8; y++) {
+				for (int x = 0; x < 8; x++) {
+					arr[y][x] = Math.floor(A.getElement(x, y) / B.getElement(x, y));
+				}
+			}
+			Matrix result = new Matrix(arr);
+			return result;
+		}
+	
+	// element-wise scalar integer division
+		public void elementwiseDivide(Matrix A) {
+			for (int y = 0; y < 8; y++) {
+				for (int x = 0; x < 8; x++) {
+					mat[y][x] = Math.floor(mat[y][x] / A.getElement(x, y));
+				}
+			}
+		}
+	
+	// element-wise scalar integer division
+	public void scalarDivide(double scalar) {
 		for (int y = 0; y < 8; y++) {
 			for (int x = 0; x < 8; x++) {
-				mat[y][x] *= scalar;
+				mat[y][x] = Math.floor(mat[y][x]/scalar);
 			}
 		}
 	}
 	
 	// TRANSPOSE
 	
-	// static form of matrix transposition, returns a new Matrix
+	// static form of matrix transposition, returns a new matrix
 	public static Matrix transpose(Matrix A) {
 		Matrix result = new Matrix();
 		for (int i = 0; i < 8; i++) {
