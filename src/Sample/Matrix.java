@@ -45,27 +45,27 @@ public class Matrix {
 	// CHANGING MATRIX ELEMENTS
 	
 	// sets position (x,y) = num
-	public void setElement(int x, int y, double num) {
+	public void setElement (int x, int y, double num) {
 		mat[y][x] = num;
 	}
 	
 	// returns the value in position (x,y)
-	public double getElement(int x, int y) {
+	public double getElement (int x, int y) {
 		return mat[y][x];
 	}
 	
 	// sets row y of the matrix with array arr
-	public void setRow(int y, double[] arr) {
+	public void setRow (int y, double[] arr) {
 		mat[y] = arr;
 	}
 	
 	// returns row y in array form
-	public double[] getRow(int y) {
+	public double[] getRow (int y) {
 		return mat[y];
 	}
 	
 	// sets column x of the matrix with array arr
-	public void setColumn(int x, double[] arr) {
+	public void setColumn (int x, double[] arr) {
 		for (int y = 0; y < 8; y++) {
 			mat[y][x] = arr[y];
 		}
@@ -80,6 +80,97 @@ public class Matrix {
 		return result;
 	}
 	
-	// OPERATORS
+	///////////////
+	// OPERATORS //
+	///////////////
+	
+	// ADDITION
+	
+	// static form of addition that returns a new Matrix
+	public static Matrix Add (Matrix A, Matrix B) {
+		double[][] arr = new double[8][8];
+		for (int y = 0; y < 8; y++) {
+			for (int x = 0; x < 8; x++) {
+				arr[y][x] = A.getElement(x, y) + B.getElement(x, y);
+			}
+		}
+		Matrix result = new Matrix(arr);
+		return result;
+	}
+	
+	// addition on a matrix
+	public void Add (Matrix A) {
+		for (int y = 0; y < 8; y++) {
+			for (int x = 0; x < 8; x++) {
+				mat[y][x] += A.getElement(x, y);
+			}
+		}
+	}
+	
+	// SUBTRACTION
+	
+	// static form of subtraction that returns a new Matrix
+	public static Matrix Subtract (Matrix A, Matrix B) {
+		double[][] arr = new double[8][8];
+		for (int y = 0; y < 8; y++) {
+			for (int x = 0; x < 8; x++) {
+				arr[y][x] = A.getElement(x, y) - B.getElement(x, y);
+			}
+		}
+		Matrix result = new Matrix(arr);
+		return result;
+	}
+	
+	// subtraction on a matrix
+	public void Subtract (Matrix A) {
+		for (int y = 0; y < 8; y++) {
+			for (int x = 0; x < 8; x++) {
+				mat[y][x] -= A.getElement(x, y);
+			}
+		}
+	}
+	
+	// MULTIPLICATION
+	
+	// static form of multiplication that returns a new Matrix
+	public static Matrix Multiply (Matrix A, Matrix B) {
+		double[][] arr = new double[8][8];
+		for (int y = 0; y < 8; y++) {
+			for (int x = 0; x < 8; x++) {
+				arr[y][x] = A.getElement(x, y) * B.getElement(y, x);
+			}
+		}
+		Matrix result = new Matrix(arr);
+		return result;
+	}
+	
+	// multiplication on a matrix
+	public void Multiply (Matrix A) {
+		for (int y = 0; y < 8; y++) {
+			for (int x = 0; x < 8; x++) {
+				mat[y][x] *= A.getElement(y, x);
+			}
+		}
+	}
+	
+	// element-wise multiplication
+	public void elementwiseMultiply (double scalar) {
+		for (int y = 0; y < 8; y++) {
+			for (int x = 0; x < 8; x++) {
+				mat[y][x] *= scalar;
+			}
+		}
+	}
+	
+	// DIVISION
+	
+	// element-wise division
+	public void elementwiseDivision (double scalar) {
+		for (int y = 0; y < 8; y++) {
+			for (int x = 0; x < 8; x++) {
+				mat[y][x] *= scalar;
+			}
+		}
+	}
 	
 }
