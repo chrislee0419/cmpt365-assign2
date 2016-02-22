@@ -105,7 +105,7 @@ public class Matrix {
 		int x_overhang = (w * 8) - width;
 		int y_overhang = (h * 8) - height;
 		int i_max, j_max, index;
-		float[] result = new float[w*h];
+		float[] result = new float[width*height];
 		
 		for (int y = 0; y < h; y++) {
 			if (y == h-1) {

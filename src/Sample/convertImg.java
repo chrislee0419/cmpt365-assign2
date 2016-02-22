@@ -272,7 +272,7 @@ public class convertImg extends JFrame implements ActionListener{
         	}
         }
         
-        return Matrix.matrix2DTo1DArray(mat);
+        return Matrix.matrix2DTo1DArray(mat, w, h);
 	}
 
 	// takes an average of 2 by 2 blocks to reduce chroma resolution
