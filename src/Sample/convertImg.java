@@ -19,11 +19,13 @@ public class convertImg extends JFrame implements ActionListener{
 	IMGPanel	m_panelImgInput, compressed_output,
 				m_panelImgOutputY, m_panelImgOutputU, m_panelImgOutputV,
 				compressed_y_panel, compressed_u_panel, compressed_v_panel;
-	BufferedImage m_imgInput, m_imgOutputY, m_imgOutputU, m_imgOutputV;
+	BufferedImage 	m_imgInput, m_imgOutputY, m_imgOutputU, m_imgOutputV,
+					compressed_y_buffer, compressed_u_buffer, compressed_v_buffer, compressed_output_buffer;
 	//Create a file chooser
 	final JFileChooser m_fc = new JFileChooser();
 	
 	float[] y_values, u_values, v_values;
+	int[] y_preview, u_preview, v_preview;
     Matrix[][] dct_mat;
     Matrix[][] quantized_mat;
     
@@ -205,17 +207,19 @@ public class convertImg extends JFrame implements ActionListener{
         float[] compressed_v = compressComponent(v_values_sub, w_sub, h_sub, 2);
         
         // convert back to 8 bit for previewing
-        int[] converted_y;
-        int[] converted_u;
-        int[] converted_v;
+        int[] converted_y = new int[w*h];
+        int[] converted_u = new int[w_sub*h_sub];
+        int[] converted_v = new int[w_sub*h_sub];
         for (int i = 0; i < w*h; i++) {
-        	converted_y[i] = convertTo256(compressed_y);
-        	converted_u[i] = convertTo256(compressed_u);
-        	converted_v[i] = convertTo256(compressed_v);
+        	converted_y[i] = convertTo256(compressed_y[i]);
+        }
+        for (int i = 0; i < w_sub*h_sub; i++) {
+        	converted_u[i] = convertTo256(compressed_u[i]);
+        	converted_v[i] = convertTo256(compressed_v[i]);
         }
         
-        float[] extended_compressed_u = expandSubsample(compressed_u, w, h);
-        float[] extended_compressed_v = expandSubsample(compressed_v, w, h);
+        float[] expanded_compressed_u = expandSubsample(compressed_u, w, h);
+        float[] expanded_compressed_v = expandSubsample(compressed_v, w, h);
         
         int[] output_picture = YUVtoRGB(compressed_y, expanded_compressed_u, expanded_compressed_v, w, h);
     	
@@ -223,52 +227,52 @@ public class convertImg extends JFrame implements ActionListener{
         // write Y values to the first output image
         m_imgOutputY = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
     	WritableRaster raster = (WritableRaster) m_imgOutputY.getData();
-    	raster.setPixels(0, 0, w, h, y_values);
+    	raster.setPixels(0, 0, w, h, y_preview);
     	m_imgOutputY.setData(raster);
     	m_panelImgOutputY.setBufferedImage(m_imgOutputY);	
 
         // write U values to the second output image
-        m_imgOutputU = new BufferedImage(w_sub, h_sub, BufferedImage.TYPE_BYTE_GRAY);
+        m_imgOutputU = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
         raster = (WritableRaster) m_imgOutputU.getData();
-        raster.setPixels(0, 0, w_sub, h_sub, u_values_sub);
+        raster.setPixels(0, 0, w, h, u_preview);
         m_imgOutputU.setData(raster);
         m_panelImgOutputU.setBufferedImage(m_imgOutputU);    
 
         // write V values to the third output image
-        m_imgOutputV = new BufferedImage(w_sub, h_sub, BufferedImage.TYPE_BYTE_GRAY);
+        m_imgOutputV = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
         raster = (WritableRaster) m_imgOutputV.getData();
-        raster.setPixels(0, 0, w_sub, h_sub, v_values_sub);
+        raster.setPixels(0, 0, w, h, v_preview);
         m_imgOutputV.setData(raster);
         m_panelImgOutputV.setBufferedImage(m_imgOutputV);
         
         // CONVERTED
         // write converted Y values to the first output image
-        compressed_y_panel = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
-    	WritableRaster raster = (WritableRaster) compressed_y_panel.getData();
+        compressed_y_buffer = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
+    	raster = (WritableRaster) compressed_y_buffer.getData();
     	raster.setPixels(0, 0, w, h, converted_y);
-    	compressed_y_panel.setData(raster);
-    	m_panelImgOutputY.setBufferedImage(compressed_y_panel);	
+    	compressed_y_buffer.setData(raster);
+    	compressed_y_panel.setBufferedImage(compressed_y_buffer);	
 
         // write converted U values to the second output image
-        compressed_u_panel = new BufferedImage(w_sub, h_sub, BufferedImage.TYPE_BYTE_GRAY);
-        raster = (WritableRaster) compressed_u_panel.getData();
+    	compressed_u_buffer = new BufferedImage(w_sub, h_sub, BufferedImage.TYPE_BYTE_GRAY);
+        raster = (WritableRaster) compressed_u_buffer.getData();
         raster.setPixels(0, 0, w_sub, h_sub, converted_u);
-        compressed_u_panel.setData(raster);
-        m_panelImgOutputU.setBufferedImage(compressed_u_panel);    
+        compressed_u_buffer.setData(raster);
+        compressed_u_panel.setBufferedImage(compressed_u_buffer);    
 
         // write converted V values to the third output image
-        compressed_v_panel = new BufferedImage(w_sub, h_sub, BufferedImage.TYPE_BYTE_GRAY);
-        raster = (WritableRaster) compressed_v_panel.getData();
+        compressed_v_buffer = new BufferedImage(w_sub, h_sub, BufferedImage.TYPE_BYTE_GRAY);
+        raster = (WritableRaster) compressed_v_buffer.getData();
         raster.setPixels(0, 0, w_sub, h_sub, converted_v);
-        compressed_v_panel.setData(raster);
-        m_panelImgOutputV.setBufferedImage(compressed_v_panel);
+        compressed_v_buffer.setData(raster);
+        compressed_v_panel.setBufferedImage(compressed_v_buffer);
         
         // FINAL RGB PICTURE
-        compressed_output = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
-    	WritableRaster raster = (WritableRaster) compressed_output.getData();
-    	raster.setPixels(0, 0, w, h, converted_y);
-    	compressed_output.setData(raster);
-    	m_panelImgOutputY.setBufferedImage(compressed_output);	
+        compressed_output_buffer = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
+    	raster = (WritableRaster) compressed_output_buffer.getData();
+    	raster.setPixels(0, 0, w, h, output_picture);
+    	compressed_output_buffer.setData(raster);
+    	compressed_output.setBufferedImage(compressed_output_buffer);	
         
 	}
 	
@@ -277,6 +281,10 @@ public class convertImg extends JFrame implements ActionListener{
     	y_values = new float[w*h];
         u_values = new float[w*h];
         v_values = new float[w*h];
+        
+    	y_preview = new int[w*h];
+        u_preview = new int[w*h];
+        v_preview = new int[w*h];
     	
         // convert 8 bit colour components to YUV components
         int red, green, blue;
@@ -293,6 +301,10 @@ public class convertImg extends JFrame implements ActionListener{
         	y_values[index] = (0.299f * red_float) + (0.587f * green_float) + (0.114f * blue_float);
             u_values[index] = (-0.14713f * red_float) + (-0.28886f * green_float) + (0.436f * blue_float);
             v_values[index] = (0.615f * red_float) + (-0.51499f * green_float) + (-0.10001f * blue_float);
+            
+            y_preview[index] = convertTo256(y_values[index]);
+            u_preview[index] = convertTo256(u_values[index]);
+            v_preview[index] = convertTo256(v_values[index]);
         }
         
         
@@ -308,13 +320,13 @@ public class convertImg extends JFrame implements ActionListener{
         
         int[] rgb = new int[w*h];
         for (int index = 0; index < h * w; ++index) {
-        	r_values[index] = (1f * y) + (0f * u) + (1.13983f * v);
-            g_values[index] = (1f * y) + (-0.39465f * u) + (-0.58060f * v);
-            b_values[index] = (1f * y) + (2.03211f * u) + (0f * v);
+        	r_values[index] = (1f * y[index]) + (0f * u[index]) + (1.13983f * v[index]);
+            g_values[index] = (1f * y[index]) + (-0.39465f * u[index]) + (-0.58060f * v[index]);
+            b_values[index] = (1f * y[index]) + (2.03211f * u[index]) + (0f * v[index]);
             
-            red = convertTo256(r_values);
-            green = converTo256(g_values)
-            blue = convertTo256(b_values);
+            red = convertTo256(r_values[index]);
+            green = convertTo256(g_values[index]);
+            blue = convertTo256(b_values[index]);
             
             rgb[index] = ((red << 16) & 0x00ff0000) & ((green << 8) & 0x0000ff00) & (blue & 0x000000ff);
         }
@@ -381,9 +393,33 @@ public class convertImg extends JFrame implements ActionListener{
 		return result;
 	}
 	
-	private int[] expandSubsample(int[] values, int w, int h) {
-		// placeholder
-		return new int[1];
+	private float[] expandSubsample(float[] values, int w, int h) {
+		boolean odd_width = (w % 2 == 1);
+		boolean odd_height = (h % 2 == 1);
+		float[] result = new float[w*h];
+		
+		for (int y = 0; y < (h/2); y++) {
+			for (int x = 0; x < (w/2); x++) {
+				result[2*y*w + 2*x] = values[y*(w/2 + w%2) + x];
+				result[2*y*w + 2*x + 1] = values[y*(w/2 + w%2) + x];
+				result[(2*y+1)*w + 2*x] = values[y*(w/2 + w%2) + x];
+				result[(2*y+1)*w + 2*x + 1] = values[y*(w/2 + w%2) + x];
+			}
+			if (odd_width) {
+				result[(2*y+1)*w - 1] = values[(y+1)*(w/2 + w%2) - 1];
+				result[(2*y+2)*w - 1] = values[(y+1)*(w/2 + w%2) - 1];
+			}
+		}
+		if (odd_height) {
+			for (int x = 0; x < (w/2); x++) {
+				result[(h-1)*w + 2*x] = values[(h/2 + h%2 - 1)*(w/2 + w%2) + x];
+				result[(h-1)*w + 2*x + 1] = values[(h/2 + h%2 - 1)*(w/2 + w%2) + x];
+			}
+			if (odd_width) {
+				result[w*h - 1] = values[(h/2 + h%2)*(w/2 + w%2) - 1];
+			}
+		}
+		return result;
 	}
 	
 	// convert an 8 bit integer [0, 255] to float from [-1, 1)

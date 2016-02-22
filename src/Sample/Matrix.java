@@ -260,7 +260,7 @@ public class Matrix {
 		float[][] arr = new float[8][8];
 		for (int y = 0; y < 8; y++) {
 			for (int x = 0; x < 8; x++) {
-				arr[y][x] = A.getElement(x, y) * B.getElement(y, x);
+				arr[y][x] = vectorMultiply(A.getRow(y), B.getColumn(x));
 			}
 		}
 		Matrix result = new Matrix(arr);
@@ -269,9 +269,15 @@ public class Matrix {
 	
 	// multiplication on a matrix
 	public void multiply(Matrix A) {
+		float[][] temp = new float[8][8];
 		for (int y = 0; y < 8; y++) {
 			for (int x = 0; x < 8; x++) {
-				mat[y][x] *= A.getElement(y, x);
+				temp[y][x] = vectorMultiply(mat[y], A.getColumn(x));
+			}
+		}
+		for (int y = 0; y < 8; y++) {
+			for (int x = 0; x < 8; x++) {
+				mat[y][x] = temp[y][x];
 			}
 		}
 	}
@@ -281,7 +287,7 @@ public class Matrix {
 		float[][] arr = new float[8][8];
 		for (int y = 0; y < 8; y++) {
 			for (int x = 0; x < 8; x++) {
-				arr[y][x] = A.getElement(x, y) * B.getElement(x, y);
+				arr[y][x] = A.getElement(x, y) + B.getElement(x, y);
 			}
 		}
 		Matrix result = new Matrix(arr);
@@ -369,6 +375,15 @@ public class Matrix {
 			mat[y2][x2] = mat[y][x];
 			mat[y][x] = temp;
 		}
+	}
+	
+	// vector multiplication for matrix multiplication
+	private static float vectorMultiply(float[] arr1, float[] arr2) {
+		float result = 0;
+		for (int i = 0; i < 8; i++) {
+			result += arr1[i] * arr2[i];
+		}
+		return result;
 	}
 	
 }
