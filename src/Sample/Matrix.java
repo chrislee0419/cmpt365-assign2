@@ -60,12 +60,19 @@ public class Matrix {
 	
 	// 1D array to 2D matrix
 	public static Matrix[][] array1DTo2DMatrix(float[] arr, int width, int height) {
-		int w = (int)Math.ceil(width / 8);
-		int h = (int)Math.ceil(height / 8);
+		int w = (int)Math.ceil((float)width / 8);
+		int h = (int)Math.ceil((float)height / 8);
 		int x_overhang = (w * 8) - width;
 		int y_overhang = (h * 8) - height;
 		int j_max, i_max, index;
 		Matrix[][] result = new Matrix[h][w];
+		
+		for (int y = 0; y < h; y++) {
+			for (int x = 0; x < w; x++) {
+				result[y][x] = new Matrix();
+			}
+		}
+		
 		for (int y = 0; y < h; y++) {
 			if (y == h-1) {
 				j_max = 8 - y_overhang;
@@ -82,7 +89,8 @@ public class Matrix {
 						i_max = 8;
 					}
 					for (int i = 0; i < i_max; i++) {
-						index = j*8 + i;
+						index = y*64*(w-1) + y*8*(8-x_overhang) + x*8 + j*width + i;
+						System.out.println(i_max + ", " + j_max + ": y = " + y + ", x = " + x + ", i = " + i + ", j = " + j + ", index = " + index);
 						result[y][x].setElement(i, j, arr[index]);
 					}
 				}
