@@ -3,7 +3,7 @@ import java.lang.Math;
 
 public class Transform {
 
-	private static double sq2 = 1/Math.sqrt(2);
+	private static float sq2 = 1/(float)Math.sqrt(2);
 	
 	public static Matrix inv_dctransform(Matrix input) {
 		Matrix dct = createDCT();
@@ -23,13 +23,13 @@ public class Transform {
 	
 	// Private
 	private static Matrix createDCT() {
-		double[][] dct = new double[8][8];
+		float[][] dct = new float[8][8];
 		for (int i = 0; i < 8; i++){
 			for (int j = 0; j < 8; j++){
 				if (i == 0)
 					dct[i][j] = sq2;
 				else
-					dct[i][j] = 0.5 * Math.cos(((2*j+1)*i*Math.PI)/16);
+					dct[i][j] = 0.5f * (float)Math.cos(((2*j+1)*i*Math.PI)/16);
 			}
 		}
 		return new Matrix(dct);

@@ -9,7 +9,7 @@ public class Matrix {
 	// - x is the horizontal component of the block (# of columns)
 	// - mat[0][0] represents the top left corner of the block
 	
-	private double[][] mat;
+	private float[][] mat;
 	
 	//////////////////
 	// CONSTRUCTORS //
@@ -17,11 +17,11 @@ public class Matrix {
 	
 	// 8 by 8 matrix
 	public Matrix() {
-		mat = new double[8][8];
+		mat = new float[8][8];
 	}
 	
 	// 2D array to matrix
-	public Matrix(double[][] A) {
+	public Matrix(float[][] A) {
 		if (A.length != 8 || A[0].length != 8) {
 			throw new IllegalArgumentException("Input array is not of size 8 by 8.");
 		}
@@ -30,7 +30,7 @@ public class Matrix {
 	
 	// copy a matrix
 	public Matrix(Matrix M) {
-		double[][] mat2 = M.matrix1Dto2DArray();
+		float[][] mat2 = M.matrix1Dto2DArray();
 		mat = mat2;
 	}
 	
@@ -41,13 +41,13 @@ public class Matrix {
 	// CONVERSION
 	
 	// returns the matrix in 2D array form
-	public double[][] matrix1Dto2DArray() {
+	public float[][] matrix1Dto2DArray() {
 		return mat;
 	}
 	
 	// returns the matrix in 1D array form
-	public double[] matrix1Dto1DArray() {
-		double[] result = new double[64];
+	public float[] matrix1Dto1DArray() {
+		float[] result = new float[64];
 		int x, y;
 		for (int i = 0; i < 64; i++) {
 			x = i % 8;
@@ -59,7 +59,7 @@ public class Matrix {
 	}
 	
 	// 1D array to 2D matrix
-	public static Matrix[][] array1DTo2DMatrix(double[] arr, int width, int height) {
+	public static Matrix[][] array1DTo2DMatrix(float[] arr, int width, int height) {
 		int w = (int)Math.ceil(width / 8);
 		int h = (int)Math.ceil(height / 8);
 		int x_overhang = (w * 8) - width;
@@ -92,9 +92,9 @@ public class Matrix {
 	}
 	
 	// returns an array with the elements of a square 2D matrix
-	public static double[] matrix2DTo1DArray(Matrix[][] A) {
+	public static float[] matrix2DTo1DArray(Matrix[][] A) {
 		int length = A[0].length;
-		double[] result = new double[64 * length * length];
+		float[] result = new float[64 * length * length];
 		int index;
 		for (int y = 0; y < length; y++) {
 			for (int x = 0; x < length; x++) {
@@ -145,35 +145,35 @@ public class Matrix {
 	// CHANGING MATRIX ELEMENTS
 	
 	// sets position (x,y) = num
-	public void setElement(int x, int y, double num) {
+	public void setElement(int x, int y, float num) {
 		mat[y][x] = num;
 	}
 	
 	// returns the value in position (x,y)
-	public double getElement(int x, int y) {
+	public float getElement(int x, int y) {
 		return mat[y][x];
 	}
 	
 	// sets row y of the matrix with array arr
-	public void setRow(int y, double[] arr) {
+	public void setRow(int y, float[] arr) {
 		mat[y] = arr;
 	}
 	
 	// returns row y in array form
-	public double[] getRow(int y) {
+	public float[] getRow(int y) {
 		return mat[y];
 	}
 	
 	// sets column x of the matrix with array arr
-	public void setColumn(int x, double[] arr) {
+	public void setColumn(int x, float[] arr) {
 		for (int y = 0; y < 8; y++) {
 			mat[y][x] = arr[y];
 		}
 	}
 	
 	// returns column x in array form
-	public double[] getColumn(int x) {
-		double[] result = new double[8];
+	public float[] getColumn(int x) {
+		float[] result = new float[8];
 		for (int y = 0; y < 8; y++) {
 			result[y] = mat[y][x];
 		}
@@ -188,7 +188,7 @@ public class Matrix {
 	
 	// static form of addition that returns a new matrix
 	public static Matrix add(Matrix A, Matrix B) {
-		double[][] arr = new double[8][8];
+		float[][] arr = new float[8][8];
 		for (int y = 0; y < 8; y++) {
 			for (int x = 0; x < 8; x++) {
 				arr[y][x] = A.getElement(x, y) + B.getElement(x, y);
@@ -211,7 +211,7 @@ public class Matrix {
 	
 	// static form of subtraction that returns a new matrix
 	public static Matrix subtract(Matrix A, Matrix B) {
-		double[][] arr = new double[8][8];
+		float[][] arr = new float[8][8];
 		for (int y = 0; y < 8; y++) {
 			for (int x = 0; x < 8; x++) {
 				arr[y][x] = A.getElement(x, y) - B.getElement(x, y);
@@ -234,7 +234,7 @@ public class Matrix {
 	
 	// static form of multiplication that returns a new matrix
 	public static Matrix multiply(Matrix A, Matrix B) {
-		double[][] arr = new double[8][8];
+		float[][] arr = new float[8][8];
 		for (int y = 0; y < 8; y++) {
 			for (int x = 0; x < 8; x++) {
 				arr[y][x] = A.getElement(x, y) * B.getElement(y, x);
@@ -255,7 +255,7 @@ public class Matrix {
 	
 	// static form of element-wise multiplication that returns a new matrix
 	public static Matrix elementwiseMultiply(Matrix A, Matrix B) {
-		double[][] arr = new double[8][8];
+		float[][] arr = new float[8][8];
 		for (int y = 0; y < 8; y++) {
 			for (int x = 0; x < 8; x++) {
 				arr[y][x] = A.getElement(x, y) * B.getElement(x, y);
@@ -275,7 +275,7 @@ public class Matrix {
 	}
 	
 	// element-wise scalar multiplication
-	public void scalarMultiply(double scalar) {
+	public void scalarMultiply(float scalar) {
 		for (int y = 0; y < 8; y++) {
 			for (int x = 0; x < 8; x++) {
 				mat[y][x] *= scalar;
@@ -287,10 +287,10 @@ public class Matrix {
 	
 	// static form of element-wise division that returns a new matrix
 		public static Matrix elementwiseDivide(Matrix A, Matrix B) {
-			double[][] arr = new double[8][8];
+			float[][] arr = new float[8][8];
 			for (int y = 0; y < 8; y++) {
 				for (int x = 0; x < 8; x++) {
-					arr[y][x] = Math.floor(A.getElement(x, y) / B.getElement(x, y));
+					arr[y][x] = (float)Math.floor(A.getElement(x, y) / B.getElement(x, y));
 				}
 			}
 			Matrix result = new Matrix(arr);
@@ -301,16 +301,16 @@ public class Matrix {
 		public void elementwiseDivide(Matrix A) {
 			for (int y = 0; y < 8; y++) {
 				for (int x = 0; x < 8; x++) {
-					mat[y][x] = Math.floor(mat[y][x] / A.getElement(x, y));
+					mat[y][x] = (float)Math.floor(mat[y][x] / A.getElement(x, y));
 				}
 			}
 		}
 	
 	// element-wise scalar integer division
-	public void scalarDivide(double scalar) {
+	public void scalarDivide(float scalar) {
 		for (int y = 0; y < 8; y++) {
 			for (int x = 0; x < 8; x++) {
-				mat[y][x] = Math.floor(mat[y][x]/scalar);
+				mat[y][x] = (float)Math.floor(mat[y][x]/scalar);
 			}
 		}
 	}
@@ -342,7 +342,7 @@ public class Matrix {
 	// swaps the element at (x, y) with (x2, y2)
 	private void swap(int x, int y, int x2, int y2) {
 		if (x != x2 || y != y2) {
-			double temp = mat[y2][x2];
+			float temp = mat[y2][x2];
 			mat[y2][x2] = mat[y][x];
 			mat[y][x] = temp;
 		}

@@ -16,10 +16,18 @@ import javax.imageio.*;
 public class convertImg extends JFrame implements ActionListener{
 	
 	JButton m_btOpen, m_btSave, m_btConvert; 
-	IMGPanel  m_panelImgInput, m_panelImgOutputY, m_panelImgOutputU, m_panelImgOutputV;
+	IMGPanel	m_panelImgInput, compressed_output,
+				m_panelImgOutputY, m_panelImgOutputU, m_panelImgOutputV,
+				compressed_y_panel, compressed_u_panel, compressed_v_panel;
 	BufferedImage m_imgInput, m_imgOutputY, m_imgOutputU, m_imgOutputV;
 	//Create a file chooser
 	final JFileChooser m_fc = new JFileChooser();
+	
+	float[] y_values, u_values, v_values;
+    Matrix[][] dct_mat;
+    Matrix[][] quantized_mat;
+    
+    final static int window_width = 1200, window_height = 900;
 	
 	//setup some GUI stuff
 	public JPanel createContentPane (){	    
@@ -28,17 +36,31 @@ public class convertImg extends JFrame implements ActionListener{
         JPanel totalGUI = new JPanel();
         totalGUI.setLayout(null);
 	    
+        // ORIGINAL PICTURE
         m_panelImgInput = new IMGPanel();        
         m_panelImgInput.setLocation(10, 10);
         m_panelImgInput.setSize(400, 400);
         m_panelImgInput.setBorder(BorderFactory.createLineBorder(Color.black));
 	    totalGUI.add(m_panelImgInput);
 	    
-	    JLabel img_label = new JLabel();
-	    img_label.setText("Original Picture");
-	    img_label.setBounds(110, 420, 200, 30);
-	    img_label.setFont(new Font("Verdana", 1, 16));
-	    totalGUI.add(img_label);
+	    JLabel input_label = new JLabel();
+	    input_label.setText("Original Picture");
+	    input_label.setBounds(110, 420, 200, 30);
+	    input_label.setFont(new Font("Verdana", 1, 16));
+	    totalGUI.add(input_label);
+	    
+	    // COMPRESSED PICTURE
+	    compressed_output = new IMGPanel();        
+	    compressed_output.setLocation(10, 460);
+	    compressed_output.setSize(400, 400);
+	    compressed_output.setBorder(BorderFactory.createLineBorder(Color.black));
+	    totalGUI.add(compressed_output);
+	    
+	    JLabel compressed_output_label = new JLabel();
+	    compressed_output_label.setText("Compressed Picture");
+	    compressed_output_label.setBounds(110, 870, 200, 30);
+	    compressed_output_label.setFont(new Font("Verdana", 1, 16));
+	    totalGUI.add(compressed_output_label);
 	    
 	    // create a panel for buttons
 	    JPanel panelButtons = new JPanel();
@@ -83,19 +105,19 @@ public class convertImg extends JFrame implements ActionListener{
 	    v_label.setFont(new Font("Verdana", 1, 12));
 	    totalGUI.add(v_label);
 	    
-	    m_btOpen = new JButton("OPEN");
+	    m_btOpen = new JButton("Open");
 	    m_btOpen.setLocation(0, 0);
 	    m_btOpen.setSize(100, 40);
 	    m_btOpen.addActionListener(this);
 	    panelButtons.add(m_btOpen);
 	    
-	    m_btSave = new JButton("SAVE");
+	    m_btSave = new JButton("Save");
 	    m_btSave.setLocation(0, 60);
 	    m_btSave.setSize(100, 40);
 	    m_btSave.addActionListener(this);
 	    panelButtons.add(m_btSave);
 	    
-	    m_btConvert = new JButton("RGB->YUV");
+	    m_btConvert = new JButton("Compress");
 	    m_btConvert.setLocation(0, 120);
 	    m_btConvert.setSize(100, 40);
 	    m_btConvert.addActionListener(this);
@@ -109,17 +131,14 @@ public class convertImg extends JFrame implements ActionListener{
 	// CONVERSION CODE //
 	/////////////////////
 	
-	private void RGBtoYUV() {
+	private void conversion() {
 		if(m_imgInput == null)
     		return;
     	int w = m_imgInput.getWidth(null);
     	int h = m_imgInput.getHeight(null);
-    	
-    	// calculate YUV values
-    	int YValues[] = new int[w*h];
-        int UValues[] = new int[w*h];
-        int VValues[] = new int[w*h];
+
     	int inputValues[] = new int[w*h];
+    	
     	PixelGrabber grabber = new PixelGrabber(m_imgInput.getSource(), 0, 0, w, h, inputValues, 0, w);
         try{
           if(grabber.grabPixels() != true){
@@ -129,43 +148,23 @@ public class convertImg extends JFrame implements ActionListener{
           }
         } catch (InterruptedException e) {};
         
-        // convert 8 bit colour components to YUV components
-        int red, green, blue;
-        float red_float, green_float, blue_float, Y, U, V;
-        for (int index = 0; index < h * w; ++index){
-        	red = ((inputValues[index] & 0x00ff0000) >> 16);
-        	green =((inputValues[index] & 0x0000ff00) >> 8);
-        	blue = ((inputValues[index] & 0x000000ff) );
-        	
-        	red_float = convertFrom256(red);
-        	green_float = convertFrom256(green);
-        	blue_float = convertFrom256(blue);
-        	
-        	Y = (0.299f * red_float) + (0.587f * green_float) + (0.114f * blue_float);
-            U = (-0.14713f * red_float) + (-0.28886f * green_float) + (0.436f * blue_float);
-            V = (0.615f * red_float) + (-0.51499f * green_float) + (-0.10001f * blue_float);
-            
-            YValues[index] = convertTo256(Y);
-            UValues[index] = convertTo256(U);
-            VValues[index] = convertTo256(V);
-            
-            if (index % w == w/2) {
-            	System.out.println(index + ": red = " + red_float + ", green = " + green_float + ", blue_float = " + blue_float);
-            	System.out.println(index + ": Y = " + Y + ", U = " + U + ", V = " + V);
-            	System.out.println(index + ": YValues = " + YValues[index] + ", UValues = " + UValues[index] + ", VValues = " + VValues[index]);
-            }
-        }
+        RGBtoYUV(inputValues, w, h);
         
         // subsample the U and V chrominance components
-        int[] u_values_sub = subsample(UValues, w, h);
-        int[] v_values_sub = subsample(VValues, w, h);
+        float[] u_values_sub = subsample(u_values, w, h);
+        float[] v_values_sub = subsample(v_values, w, h);
         int w_sub = w/2 + w%2;
         int h_sub = h/2 + h%2;
+        
+        // use JPEG compression
+        float[] compressed_Y = compressComponent(y_values, w, h, 1);
+        float[] compressed_U = compressComponent(u_values_sub, w_sub, h_sub, 2);
+        float[] compressed_V = compressComponent(v_values_sub, w_sub, h_sub, 2);
     	
         // write Y values to the first output image
         m_imgOutputY = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
     	WritableRaster raster = (WritableRaster) m_imgOutputY.getData();
-    	raster.setPixels(0, 0, w, h, YValues);
+    	raster.setPixels(0, 0, w, h, y_values);
     	m_imgOutputY.setData(raster);
     	m_panelImgOutputY.setBufferedImage(m_imgOutputY);	
 
@@ -184,16 +183,61 @@ public class convertImg extends JFrame implements ActionListener{
         m_panelImgOutputV.setBufferedImage(m_imgOutputV);
 	}
 	
+	private void RGBtoYUV(int[] input_values, int w, int h) {
+    	// calculate YUV values
+    	y_values = new float[w*h];
+        u_values = new float[w*h];
+        v_values = new float[w*h];
+    	
+        // convert 8 bit colour components to YUV components
+        int red, green, blue;
+        float red_float, green_float, blue_float, Y, U, V;
+        for (int index = 0; index < h * w; ++index){
+        	red = ((input_values[index] & 0x00ff0000) >> 16);
+        	green =((input_values[index] & 0x0000ff00) >> 8);
+        	blue = ((input_values[index] & 0x000000ff) );
+        	
+        	red_float = convertFrom256(red);
+        	green_float = convertFrom256(green);
+        	blue_float = convertFrom256(blue);
+        	
+        	y_values[index] = (0.299f * red_float) + (0.587f * green_float) + (0.114f * blue_float);
+            u_values[index] = (-0.14713f * red_float) + (-0.28886f * green_float) + (0.436f * blue_float);
+            v_values[index] = (0.615f * red_float) + (-0.51499f * green_float) + (-0.10001f * blue_float);
+        }
+        
+        
+	}
+	
 	private void YUVtoRGB() {
 		// placeholder
 	}
 
+    // split component into 8x8 block matrices
+	private float[] compressComponent(float[] arr, int w, int h, int quality) {
+        Matrix[][] mat = Matrix.array1DTo2DMatrix(arr, w, h);
+        dct_mat = new Matrix[h][w];
+        quantized_mat = new Matrix[h][w];
+        Matrix temp;
+        
+        for (int i = 0; i < h; i++) {
+        	for (int j = 0; j < w; j++) {
+        		dct_mat[i][j] = Transform.dctransform(mat[i][j]);
+        		quantized_mat[i][j] = Quantization.quantize(dct_mat[i][j], quality);
+        		temp = Quantization.inv_quantize(quantized_mat[i][j], quality);
+        		mat[i][j] = Transform.inv_dctransform(temp);
+        	}
+        }
+        
+        return Matrix.matrix2DTo1DArray(mat);
+	}
+
 	// takes an average of 2 by 2 blocks to reduce chroma resolution
 	// divide width and height by 2, take ceiling
-	private int[] subsample(int[] values, int w, int h) {
+	private float[] subsample(float[] values, int w, int h) {
 		boolean odd_width = (w % 2 == 1);
 		boolean odd_height = (h % 2 == 1);
-		int[] result = new int[(w/2 + w%2) * (h/2 + h%2)];
+		float[] result = new float[(w/2 + w%2) * (h/2 + h%2)];
 		int holder;
 		
 		for (int y = 0; y < (h/2); y++) {
@@ -271,7 +315,7 @@ public class convertImg extends JFrame implements ActionListener{
         }
         // convert RGB to YUV 
         else if(evnt.getSource() == m_btConvert){
-        	RGBtoYUV();
+        	conversion();
         }
         // button SAVE is clicked
         else if(evnt.getSource() == m_btSave){
@@ -299,7 +343,7 @@ public class convertImg extends JFrame implements ActionListener{
         convertImg demo = new convertImg();
         frame.setContentPane(demo.createContentPane());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1200, 500);
+        frame.setSize(window_width, window_height);
         frame.setVisible(true);
     }
     
