@@ -69,42 +69,85 @@ public class convertImg extends JFrame implements ActionListener{
 	    panelButtons.setSize(100, 160);
         totalGUI.add(panelButtons);
         
+        // Y COMPONENT
         m_panelImgOutputY = new IMGPanel();
         m_panelImgOutputY.setLocation(540, 10);
-        m_panelImgOutputY.setSize(200, 200);
+        m_panelImgOutputY.setSize(400, 400);
         m_panelImgOutputY.setBorder(BorderFactory.createLineBorder(Color.black));
         totalGUI.add(m_panelImgOutputY);
         
         JLabel y_label = new JLabel();
 	    y_label.setText("Y Component");
-	    y_label.setBounds(590, 220, 100, 20);
-	    y_label.setFont(new Font("Verdana", 1, 12));
+	    y_label.setBounds(590, 420, 100, 30);
+	    y_label.setFont(new Font("Verdana", 1, 16));
 	    totalGUI.add(y_label);
+	    
+	    // COMPRESSED Y COMPONENT
+        compressed_y_panel = new IMGPanel();
+        compressed_y_panel.setLocation(540, 460);
+        compressed_y_panel.setSize(400, 400);
+        compressed_y_panel.setBorder(BorderFactory.createLineBorder(Color.black));
+        totalGUI.add(compressed_y_panel);
+        
+        JLabel compressed_y_label = new JLabel();
+	    compressed_y_label.setText("Compressed Y Component");
+	    compressed_y_label.setBounds(640, 870, 200, 30);
+	    compressed_y_label.setFont(new Font("Verdana", 1, 16));
+	    totalGUI.add(compressed_y_label);
 
+        // U COMPONENT
         m_panelImgOutputU = new IMGPanel();
-        m_panelImgOutputU.setLocation(750, 10);
-        m_panelImgOutputU.setSize(200, 200);
+        m_panelImgOutputU.setLocation(950, 10);
+        m_panelImgOutputU.setSize(400, 400);
         m_panelImgOutputU.setBorder(BorderFactory.createLineBorder(Color.black));
         totalGUI.add(m_panelImgOutputU);
         
         JLabel u_label = new JLabel();
 	    u_label.setText("U Component");
-	    u_label.setBounds(800, 220, 100, 20);
-	    u_label.setFont(new Font("Verdana", 1, 12));
+	    u_label.setBounds(1050, 420, 200, 30);
+	    u_label.setFont(new Font("Verdana", 1, 16));
 	    totalGUI.add(u_label);
+	    
+	    // COMPRESSED U COMPONENT
+        compressed_u_panel = new IMGPanel();
+        compressed_u_panel.setLocation(950, 460);
+        compressed_u_panel.setSize(400, 400);
+        compressed_u_panel.setBorder(BorderFactory.createLineBorder(Color.black));
+        totalGUI.add(compressed_u_panel);
+        
+        JLabel compressed_u_label = new JLabel();
+	    compressed_u_label.setText("Compressed U Component");
+	    compressed_u_label.setBounds(1050, 870, 200, 30);
+	    compressed_u_label.setFont(new Font("Verdana", 1, 16));
+	    totalGUI.add(compressed_u_label);
 
+		// V COMPONENT
         m_panelImgOutputV = new IMGPanel();
-        m_panelImgOutputV.setLocation(960, 10);
-        m_panelImgOutputV.setSize(200, 200);
+        m_panelImgOutputV.setLocation(1360, 10);
+        m_panelImgOutputV.setSize(400, 400);
         m_panelImgOutputV.setBorder(BorderFactory.createLineBorder(Color.black));
         totalGUI.add(m_panelImgOutputV);
         
         JLabel v_label = new JLabel();
 	    v_label.setText("V Component");
-	    v_label.setBounds(1010, 220, 100, 20);
-	    v_label.setFont(new Font("Verdana", 1, 12));
+	    v_label.setBounds(1460, 420, 200, 30);
+	    v_label.setFont(new Font("Verdana", 1, 16));
 	    totalGUI.add(v_label);
 	    
+	    // COMPRESSED V COMPONENT
+        compressed_v_panel = new IMGPanel();
+        compressed_v_panel.setLocation(1360, 460);
+        compressed_v_panel.setSize(400, 400);
+        compressed_v_panel.setBorder(BorderFactory.createLineBorder(Color.black));
+        totalGUI.add(compressed_v_panel);
+        
+        JLabel compressed_v_label = new JLabel();
+	    compressed_v_label.setText("Compressed V Component");
+	    compressed_v_label.setBounds(1460, 870, 200, 30);
+	    compressed_v_label.setFont(new Font("Verdana", 1, 16));
+	    totalGUI.add(compressed_v_label);
+	    
+	    // BUTTONS
 	    m_btOpen = new JButton("Open");
 	    m_btOpen.setLocation(0, 0);
 	    m_btOpen.setSize(100, 40);
