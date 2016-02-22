@@ -27,7 +27,7 @@ public class convertImg extends JFrame implements ActionListener{
     Matrix[][] dct_mat;
     Matrix[][] quantized_mat;
     
-    final static int window_width = 1200, window_height = 900;
+    final static int window_width = 1800, window_height = 980;
 	
 	//setup some GUI stuff
 	public JPanel createContentPane (){	    
@@ -200,10 +200,26 @@ public class convertImg extends JFrame implements ActionListener{
         int h_sub = h/2 + h%2;
         
         // use JPEG compression
-        float[] compressed_Y = compressComponent(y_values, w, h, 1);
-        float[] compressed_U = compressComponent(u_values_sub, w_sub, h_sub, 2);
-        float[] compressed_V = compressComponent(v_values_sub, w_sub, h_sub, 2);
+        float[] compressed_y = compressComponent(y_values, w, h, 1);
+        float[] compressed_u = compressComponent(u_values_sub, w_sub, h_sub, 2);
+        float[] compressed_v = compressComponent(v_values_sub, w_sub, h_sub, 2);
+        
+        // convert back to 8 bit for previewing
+        int[] converted_y;
+        int[] converted_u;
+        int[] converted_v;
+        for (int i = 0; i < w*h; i++) {
+        	converted_y[i] = convertTo256(compressed_y);
+        	converted_u[i] = convertTo256(compressed_u);
+        	converted_v[i] = convertTo256(compressed_v);
+        }
+        
+        float[] extended_compressed_u = expandSubsample(compressed_u, w, h);
+        float[] extended_compressed_v = expandSubsample(compressed_v, w, h);
+        
+        int[] output_picture = YUVtoRGB(compressed_y, expanded_compressed_u, expanded_compressed_v, w, h);
     	
+    	// NOT CONVERTED
         // write Y values to the first output image
         m_imgOutputY = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
     	WritableRaster raster = (WritableRaster) m_imgOutputY.getData();
@@ -224,6 +240,36 @@ public class convertImg extends JFrame implements ActionListener{
         raster.setPixels(0, 0, w_sub, h_sub, v_values_sub);
         m_imgOutputV.setData(raster);
         m_panelImgOutputV.setBufferedImage(m_imgOutputV);
+        
+        // CONVERTED
+        // write converted Y values to the first output image
+        compressed_y_panel = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
+    	WritableRaster raster = (WritableRaster) compressed_y_panel.getData();
+    	raster.setPixels(0, 0, w, h, converted_y);
+    	compressed_y_panel.setData(raster);
+    	m_panelImgOutputY.setBufferedImage(compressed_y_panel);	
+
+        // write converted U values to the second output image
+        compressed_u_panel = new BufferedImage(w_sub, h_sub, BufferedImage.TYPE_BYTE_GRAY);
+        raster = (WritableRaster) compressed_u_panel.getData();
+        raster.setPixels(0, 0, w_sub, h_sub, converted_u);
+        compressed_u_panel.setData(raster);
+        m_panelImgOutputU.setBufferedImage(compressed_u_panel);    
+
+        // write converted V values to the third output image
+        compressed_v_panel = new BufferedImage(w_sub, h_sub, BufferedImage.TYPE_BYTE_GRAY);
+        raster = (WritableRaster) compressed_v_panel.getData();
+        raster.setPixels(0, 0, w_sub, h_sub, converted_v);
+        compressed_v_panel.setData(raster);
+        m_panelImgOutputV.setBufferedImage(compressed_v_panel);
+        
+        // FINAL RGB PICTURE
+        compressed_output = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
+    	WritableRaster raster = (WritableRaster) compressed_output.getData();
+    	raster.setPixels(0, 0, w, h, converted_y);
+    	compressed_output.setData(raster);
+    	m_panelImgOutputY.setBufferedImage(compressed_output);	
+        
 	}
 	
 	private void RGBtoYUV(int[] input_values, int w, int h) {
@@ -252,8 +298,28 @@ public class convertImg extends JFrame implements ActionListener{
         
 	}
 	
-	private void YUVtoRGB() {
-		// placeholder
+	private int[] YUVtoRGB(float[] y, float[] u, float[] v, int w, int h) {
+    	float[] r_values = new float[w*h];
+        float[] g_values = new float[w*h];
+        float[] b_values = new float[w*h];
+    	
+        // convert 8 bit colour components to YUV components
+        int red, green, blue;
+        
+        int[] rgb = new int[w*h];
+        for (int index = 0; index < h * w; ++index) {
+        	r_values[index] = (1f * y) + (0f * u) + (1.13983f * v);
+            g_values[index] = (1f * y) + (-0.39465f * u) + (-0.58060f * v);
+            b_values[index] = (1f * y) + (2.03211f * u) + (0f * v);
+            
+            red = convertTo256(r_values);
+            green = converTo256(g_values)
+            blue = convertTo256(b_values);
+            
+            rgb[index] = ((red << 16) & 0x00ff0000) & ((green << 8) & 0x0000ff00) & (blue & 0x000000ff);
+        }
+            
+        return rgb;
 	}
 
     // split component into 8x8 block matrices
