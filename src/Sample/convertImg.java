@@ -129,14 +129,31 @@ public class convertImg extends JFrame implements ActionListener{
           }
         } catch (InterruptedException e) {};
         
-        int red,green, blue; 
+        // convert 8 bit colour components to YUV components
+        int red, green, blue;
+        float red_float, green_float, blue_float, Y, U, V;
         for (int index = 0; index < h * w; ++index){
         	red = ((inputValues[index] & 0x00ff0000) >> 16);
         	green =((inputValues[index] & 0x0000ff00) >> 8);
         	blue = ((inputValues[index] & 0x000000ff) );
-        	YValues[index] = (int)((0.299 * (float)red) + (0.587 * (float)green) + (0.114 * (float)blue));
-            UValues[index] = (int)((-0.299* (float)red) + (-0.587* (float)green) + (0.866 * (float)blue));
-            VValues[index] = (int)((0.701 * (float)red) + (-0.587* (float)green) + (-0.114* (float)blue));
+        	
+        	red_float = convertFrom256(red);
+        	green_float = convertFrom256(green);
+        	blue_float = convertFrom256(blue);
+        	
+        	Y = (0.299f * red_float) + (0.587f * green_float) + (0.114f * blue_float);
+            U = (-0.14713f * red_float) + (-0.28886f * green_float) + (0.436f * blue_float);
+            V = (0.615f * red_float) + (-0.51499f * green_float) + (-0.10001f * blue_float);
+            
+            YValues[index] = convertTo256(Y);
+            UValues[index] = convertTo256(U);
+            VValues[index] = convertTo256(V);
+            
+            if (index % w == w/2) {
+            	System.out.println(index + ": red = " + red_float + ", green = " + green_float + ", blue_float = " + blue_float);
+            	System.out.println(index + ": Y = " + Y + ", U = " + U + ", V = " + V);
+            	System.out.println(index + ": YValues = " + YValues[index] + ", UValues = " + UValues[index] + ", VValues = " + VValues[index]);
+            }
         }
         
         // subsample the U and V chrominance components
@@ -165,6 +182,10 @@ public class convertImg extends JFrame implements ActionListener{
         raster.setPixels(0, 0, w_sub, h_sub, v_values_sub);
         m_imgOutputV.setData(raster);
         m_panelImgOutputV.setBufferedImage(m_imgOutputV);
+	}
+	
+	private void YUVtoRGB() {
+		// placeholder
 	}
 
 	// takes an average of 2 by 2 blocks to reduce chroma resolution
@@ -212,10 +233,21 @@ public class convertImg extends JFrame implements ActionListener{
 		return new int[1];
 	}
 	
-	private void YUVtoRGB() {
-		// placeholder
+	// convert an 8 bit integer [0, 255] to float from [-1, 1)
+	private float convertFrom256(int num) {
+		float result;
+		num -= 128;
+		result = (float)num/128;
+		return result;
 	}
 	
+	// convert a float [-1, 1) to an 8 bit integer [0, 255]
+	private int convertTo256(float num) {
+		int result;
+		num *= 128;
+		result = (int)num + 128;
+		return result;
+	}
 	
     // This is the new ActionPerformed Method.
     // It catches any events with an ActionListener attached.
