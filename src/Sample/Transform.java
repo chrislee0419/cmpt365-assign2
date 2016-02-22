@@ -17,7 +17,9 @@ public class Transform {
 		Matrix result = createDCT();
 		Matrix idct = createInverseDCT();
 		result.multiply(input);
+		Matrix.print(result);
 	    result.multiply(idct);
+		Matrix.print(result);
 	    return result;
 	}
 	

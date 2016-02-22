@@ -33,6 +33,16 @@ public class Quantization{
 			{2, 3, 4, 4, 5, 6, 6, 5},
 			{4, 5, 5, 5, 6, 5, 5, 5}};
 	
+	private static float[][] lqt_default = {
+			{1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1}};
+	
 	// Quantize Functions
     
 	public static Matrix quantize(Matrix input, int table) {
@@ -50,14 +60,19 @@ public class Quantization{
 	// Private
 	private static Matrix createLQT(int table) {
 	    float[][] lqt;
-	    if (table == 1) {
-	    	lqt = lqt_recommended_luminance;
-	    }
-	    else if (table == 2) {
-	    	lqt = lqt_recommended_chrominance;
-	    }
-	    else {
-	    	lqt = new float[1][1];
+	    switch (table) {
+	    	case 1:
+	    		lqt = lqt_recommended_luminance;
+	    		break;
+	    	case 2:
+		    	lqt = lqt_recommended_chrominance;
+		    	break;
+	    	case 3:
+	    		lqt = lqt_high_quality;
+	    		break;
+	    	default:
+		    	lqt = lqt_default;
+	    		
 	    }
 	    Matrix result = new Matrix(lqt);
 	    return result;

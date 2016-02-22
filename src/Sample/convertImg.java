@@ -202,9 +202,9 @@ public class convertImg extends JFrame implements ActionListener{
         int h_sub = h/2 + h%2;
         
         // use JPEG compression
-        float[] compressed_y = compressComponent(y_values, w, h, 1);
-        float[] compressed_u = compressComponent(u_values_sub, w_sub, h_sub, 2);
-        float[] compressed_v = compressComponent(v_values_sub, w_sub, h_sub, 2);
+        float[] compressed_y = compressComponent(y_values, w, h, -1);
+        float[] compressed_u = compressComponent(u_values_sub, w_sub, h_sub, -2);
+        float[] compressed_v = compressComponent(v_values_sub, w_sub, h_sub, -2);
         
         // convert back to 8 bit for previewing
         int[] converted_y = new int[w*h];
@@ -343,6 +343,8 @@ public class convertImg extends JFrame implements ActionListener{
         
         for (int i = 0; i < Math.ceil((double)h/8); i++) {
         	for (int j = 0; j < Math.ceil((double)w/8); j++) {
+        		//if (i == 0 && j == 0)
+        			//mat[i][j].print();
         		dct_mat[i][j] = Transform.dctransform(mat[i][j]);
         		quantized_mat[i][j] = Quantization.quantize(dct_mat[i][j], quality);
         		temp = Quantization.inv_quantize(quantized_mat[i][j], quality);
@@ -493,11 +495,24 @@ public class convertImg extends JFrame implements ActionListener{
     }
     
 	public static void main(String[] args) {
+		float[][] arr = {
+				{-1, -1, -1, -1, -1, -1, -1, -1},
+				{-1, -1, -1, -1, -1, -1, -1, -1},
+				{-1, -1, -1, -1, -1, -1, -1, -1},
+				{-1, -1, -1, -1, -1, -1, -1, -1},
+				{-1, -1, -1, -1, -1, -1, -1, -0.21914846f},
+				{-1, -1, -1, -1, -1, -1, -0.24771877f, -0.1878047f},
+				{-1, -1, -1, -1, -1, -0.29909375f, -0.2436797f, -0.16975783f},
+				{-1, -1, -1, -1, -0.41344532f, -0.29496875f, -0.22796875f, -0.21009374f}
+		};
+		Matrix mat = new Matrix(arr);
+		Transform.dctransform(mat);
+		
         //Schedule a job for the event-dispatching thread:
         //creating and showing this application's GUI.
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                createAndShowGUI();
+//                createAndShowGUI();
             }
         });
     }

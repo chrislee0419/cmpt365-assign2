@@ -137,6 +137,7 @@ public class Matrix {
 	
 	// print function
 	public void print() {
+		System.out.println("Printing Matrix:");
 		for (int y = 0; y < 8; y++) {
 			System.out.print("[ ");
 			for (int x = 0; x < 8; x++) {
@@ -152,6 +153,7 @@ public class Matrix {
 	
 	// static print function
 	public static void print(Matrix A) {
+		System.out.println("Printing Matrix:");
 		for (int y = 0; y < 8; y++) {
 			System.out.print("[ ");
 			for (int x = 0; x < 8; x++) {
@@ -287,7 +289,7 @@ public class Matrix {
 		float[][] arr = new float[8][8];
 		for (int y = 0; y < 8; y++) {
 			for (int x = 0; x < 8; x++) {
-				arr[y][x] = A.getElement(x, y) + B.getElement(x, y);
+				arr[y][x] = A.getElement(x, y) * B.getElement(x, y);
 			}
 		}
 		Matrix result = new Matrix(arr);
@@ -358,7 +360,7 @@ public class Matrix {
 	// transpose an existing matrix
 	public void transpose() {
 		for (int y = 0; y < 8; y++) {
-			for (int x = 0; x < 8; x++) {
+			for (int x = y; x < 8; x++) {
 				this.swap(x,y,y,x);
 			}
 		}
