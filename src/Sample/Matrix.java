@@ -90,7 +90,6 @@ public class Matrix {
 					}
 					for (int i = 0; i < i_max; i++) {
 						index = y*64*(w-1) + y*8*(8-x_overhang) + x*8 + j*width + i;
-						System.out.println(i_max + ", " + j_max + ": y = " + y + ", x = " + x + ", i = " + i + ", j = " + j + ", index = " + index);
 						result[y][x].setElement(i, j, arr[index]);
 					}
 				}

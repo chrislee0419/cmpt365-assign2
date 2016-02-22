@@ -263,8 +263,8 @@ public class convertImg extends JFrame implements ActionListener{
         quantized_mat = new Matrix[h][w];
         Matrix temp;
         
-        for (int i = 0; i < h; i++) {
-        	for (int j = 0; j < w; j++) {
+        for (int i = 0; i < Math.ceil((double)h/8); i++) {
+        	for (int j = 0; j < Math.ceil((double)w/8); j++) {
         		dct_mat[i][j] = Transform.dctransform(mat[i][j]);
         		quantized_mat[i][j] = Quantization.quantize(dct_mat[i][j], quality);
         		temp = Quantization.inv_quantize(quantized_mat[i][j], quality);
