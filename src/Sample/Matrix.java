@@ -99,15 +99,31 @@ public class Matrix {
 	}
 	
 	// returns an array with the elements of a square 2D matrix
-	public static float[] matrix2DTo1DArray(Matrix[][] A) {
-		int length = A[0].length;
-		float[] result = new float[64 * length * length];
-		int index;
-		for (int y = 0; y < length; y++) {
-			for (int x = 0; x < length; x++) {
-				for (int j = 0; j < 8; j++) {
-					for (int i = 0; i < 8; i++) {
-						index = y*64*length + 64*x + j*8 + i;
+	public static float[] matrix2DTo1DArray(Matrix[][] A, int width, int height) {
+		int w = (int)Math.ceil((float)width / 8);
+		int h = (int)Math.ceil((float)height / 8);
+		int x_overhang = (w * 8) - width;
+		int y_overhang = (h * 8) - height;
+		int i_max, j_max, index;
+		float[] result = new float[w*h];
+		
+		for (int y = 0; y < h; y++) {
+			if (y == h-1) {
+				j_max = 8 - y_overhang;
+			}
+			else {
+				j_max = 8;
+			}
+			for (int j = 0; j < j_max; j++) {
+				for (int x = 0; x < w; x++) {
+					if (x == w-1) {
+						i_max = 8 - x_overhang;
+					}
+					else {
+						i_max = 8;
+					}
+					for (int i = 0; i < i_max; i++) {
+						index = y*64*(w-1) + y*8*(8-x_overhang) + x*8 + j*width + i;
 						result[index] = A[y][x].getElement(i, j);
 					}
 				}
