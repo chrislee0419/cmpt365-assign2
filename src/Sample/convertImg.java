@@ -25,7 +25,6 @@ public class convertImg extends JFrame implements ActionListener{
 	final JFileChooser m_fc = new JFileChooser();
 	
 	float[] y_values, u_values, v_values;
-	int[] y_preview, u_preview, v_preview;
     Matrix[][] dct_mat;
     Matrix[][] quantized_mat;
     
@@ -202,22 +201,23 @@ public class convertImg extends JFrame implements ActionListener{
         int h_sub = h/2 + h%2;
         
         // use JPEG compression
-        float[] compressed_y = compressComponent(y_values, w, h, 3);
+        float[] compressed_y = compressComponent(y_values, w, h, 1);
         float[] compressed_u = compressComponent(u_values_sub, w_sub, h_sub, 2);
         float[] compressed_v = compressComponent(v_values_sub, w_sub, h_sub, 2);
         
         // convert back to 8 bit for previewing
-        int[] converted_y = new int[w*h];
-        int[] converted_u = new int[w_sub*h_sub];
-        int[] converted_v = new int[w_sub*h_sub];
-        for (int i = 0; i < w*h; i++) {
-        	converted_y[i] = convertTo256(compressed_y[i]);
-        }
-        for (int i = 0; i < w_sub*h_sub; i++) {
-        	converted_u[i] = convertTo256(compressed_u[i]);
-        	converted_v[i] = convertTo256(compressed_v[i]);
-        }
+//        int[] converted_y = new int[w*h];
+//        int[] converted_u = new int[w_sub*h_sub];
+//        int[] converted_v = new int[w_sub*h_sub];
+//        for (int i = 0; i < w*h; i++) {
+//        	converted_y[i] = convertTo256(compressed_y[i]);
+//        }
+//        for (int i = 0; i < w_sub*h_sub; i++) {
+//        	converted_u[i] = convertTo256(compressed_u[i]);
+//        	converted_v[i] = convertTo256(compressed_v[i]);
+//        }
         
+        // expand the subsampled components back to their original resolution
         float[] expanded_compressed_u = expandSubsample(compressed_u, w, h);
         float[] expanded_compressed_v = expandSubsample(compressed_v, w, h);
         
@@ -227,21 +227,21 @@ public class convertImg extends JFrame implements ActionListener{
         // write Y values to the first output image
         m_imgOutputY = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
     	WritableRaster raster = (WritableRaster) m_imgOutputY.getData();
-    	raster.setPixels(0, 0, w, h, y_preview);
+    	raster.setPixels(0, 0, w, h, y_values);
     	m_imgOutputY.setData(raster);
     	m_panelImgOutputY.setBufferedImage(m_imgOutputY);	
 
         // write U values to the second output image
         m_imgOutputU = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
         raster = (WritableRaster) m_imgOutputU.getData();
-        raster.setPixels(0, 0, w, h, u_preview);
+        raster.setPixels(0, 0, w, h, u_values);
         m_imgOutputU.setData(raster);
         m_panelImgOutputU.setBufferedImage(m_imgOutputU);    
 
         // write V values to the third output image
         m_imgOutputV = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
         raster = (WritableRaster) m_imgOutputV.getData();
-        raster.setPixels(0, 0, w, h, v_preview);
+        raster.setPixels(0, 0, w, h, v_values);
         m_imgOutputV.setData(raster);
         m_panelImgOutputV.setBufferedImage(m_imgOutputV);
         
@@ -249,21 +249,21 @@ public class convertImg extends JFrame implements ActionListener{
         // write converted Y values to the first output image
         compressed_y_buffer = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
     	raster = (WritableRaster) compressed_y_buffer.getData();
-    	raster.setPixels(0, 0, w, h, converted_y);
+    	raster.setPixels(0, 0, w, h, compressed_y);
     	compressed_y_buffer.setData(raster);
     	compressed_y_panel.setBufferedImage(compressed_y_buffer);	
 
         // write converted U values to the second output image
-    	compressed_u_buffer = new BufferedImage(w_sub, h_sub, BufferedImage.TYPE_BYTE_GRAY);
+    	compressed_u_buffer = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
         raster = (WritableRaster) compressed_u_buffer.getData();
-        raster.setPixels(0, 0, w_sub, h_sub, converted_u);
+        raster.setPixels(0, 0, w, h, expanded_compressed_u);
         compressed_u_buffer.setData(raster);
         compressed_u_panel.setBufferedImage(compressed_u_buffer);    
 
         // write converted V values to the third output image
-        compressed_v_buffer = new BufferedImage(w_sub, h_sub, BufferedImage.TYPE_BYTE_GRAY);
+        compressed_v_buffer = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
         raster = (WritableRaster) compressed_v_buffer.getData();
-        raster.setPixels(0, 0, w_sub, h_sub, converted_v);
+        raster.setPixels(0, 0, w, h, expanded_compressed_v);
         compressed_v_buffer.setData(raster);
         compressed_v_panel.setBufferedImage(compressed_v_buffer);
         
@@ -281,52 +281,42 @@ public class convertImg extends JFrame implements ActionListener{
     	y_values = new float[w*h];
         u_values = new float[w*h];
         v_values = new float[w*h];
-        
-    	y_preview = new int[w*h];
-        u_preview = new int[w*h];
-        v_preview = new int[w*h];
     	
         // convert 8 bit colour components to YUV components
         int red, green, blue;
-        float red_float, green_float, blue_float, Y, U, V;
         for (int index = 0; index < h * w; ++index){
-        	red = ((input_values[index] & 0x00ff0000) >> 16);
-        	green =((input_values[index] & 0x0000ff00) >> 8);
-        	blue = ((input_values[index] & 0x000000ff) );
+        	red = ((input_values[index] & 0x00ff0000) >> 16) - 128;
+        	green =((input_values[index] & 0x0000ff00) >> 8) - 128;
+        	blue = ((input_values[index] & 0x000000ff) ) - 128;
         	
-        	red_float = convertFrom256(red);
-        	green_float = convertFrom256(green);
-        	blue_float = convertFrom256(blue);
-        	
-        	y_values[index] = (0.299f * red_float) + (0.587f * green_float) + (0.114f * blue_float);
-            u_values[index] = (-0.14713f * red_float) + (-0.28886f * green_float) + (0.436f * blue_float);
-            v_values[index] = (0.615f * red_float) + (-0.51499f * green_float) + (-0.10001f * blue_float);
+        	y_values[index] = (0.299f * (float)red) + (0.587f * (float)green) + (0.114f * (float)blue);
+            u_values[index] = (-0.14713f * (float)red) + (-0.28886f * (float)green) + (0.436f * (float)blue);
+            v_values[index] = (0.615f * (float)red) + (-0.51499f * (float)green) + (-0.10001f * (float)blue);
             
-            y_preview[index] = convertTo256(y_values[index]);
-            u_preview[index] = convertTo256(u_values[index]);
-            v_preview[index] = convertTo256(v_values[index]);
+            y_values[index] = y_values[index] + 128;
+            u_values[index] = u_values[index] + 128;
+            v_values[index] = v_values[index] + 128;
         }
-        
-        
 	}
 	
-	private int[] YUVtoRGB(int[] input, float[] y, float[] u, float[] v, int w, int h) {
-    	float[] r_values = new float[w*h];
-        float[] g_values = new float[w*h];
-        float[] b_values = new float[w*h];
-    	
+	private int[] YUVtoRGB(int[] input, float[] y_arr, float[] u_arr, float[] v_arr, int w, int h) {
         // convert 8 bit colour components to YUV components
         int red, green, blue;
+        float r, g, b, y, u, v;
         
         int[] rgb = new int[w*h];
         for (int index = 0; index < h * w; ++index) {
-        	r_values[index] = (1f * y[index]) + (0f * u[index]) + (1.13983f * v[index]);
-            g_values[index] = (1f * y[index]) + (-0.39465f * u[index]) + (-0.58060f * v[index]);
-            b_values[index] = (1f * y[index]) + (2.03211f * u[index]) + (0f * v[index]);
+        	y = y_arr[index] - 128;
+        	u = u_arr[index] - 128;
+        	v = v_arr[index] - 128;
+        	
+        	r = (1f * y) + (1.13983f * v);
+            g = (1f * y) + (-0.39465f * u) + (-0.58060f * v);
+            b = (1f * y) + (2.03211f * u);
             
-            red = convertTo256(r_values[index]);
-            green = convertTo256(g_values[index]);
-            blue = convertTo256(b_values[index]);
+            red = (int)r + 128;
+            green = (int)g + 128;
+            blue = (int)b + 128;
             
             rgb[index] = (input[index] & 0xff000000) | ((red << 16) & 0x00ff0000) | ((green << 8) & 0x0000ff00) | (blue & 0x000000ff);
         }
@@ -426,18 +416,6 @@ public class convertImg extends JFrame implements ActionListener{
 			}
 		}
 		return result;
-	}
-	
-	// convert an 8 bit integer [0, 255] to float from [-1, 1)
-	private float convertFrom256(int num) {
-		num -= 128;
-		return (float)num / 128f;
-	}
-	
-	// convert a float [-1, 1) to an 8 bit integer [0, 255]
-	private int convertTo256(float num) {
-		num *= 128;
-		return (int)(num + 128);
 	}
 	
     // This is the new ActionPerformed Method.
