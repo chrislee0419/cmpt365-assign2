@@ -495,24 +495,12 @@ public class convertImg extends JFrame implements ActionListener{
     }
     
 	public static void main(String[] args) {
-		float[][] arr = {
-				{-1, -1, -1, -1, -1, -1, -1, -1},
-				{-1, -1, -1, -1, -1, -1, -1, -1},
-				{-1, -1, -1, -1, -1, -1, -1, -1},
-				{-1, -1, -1, -1, -1, -1, -1, -1},
-				{-1, -1, -1, -1, -1, -1, -1, -0.21914846f},
-				{-1, -1, -1, -1, -1, -1, -0.24771877f, -0.1878047f},
-				{-1, -1, -1, -1, -1, -0.29909375f, -0.2436797f, -0.16975783f},
-				{-1, -1, -1, -1, -0.41344532f, -0.29496875f, -0.22796875f, -0.21009374f}
-		};
-		Matrix mat = new Matrix(arr);
-		Transform.dctransform(mat);
 		
         //Schedule a job for the event-dispatching thread:
         //creating and showing this application's GUI.
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-//                createAndShowGUI();
+                createAndShowGUI();
             }
         });
     }
