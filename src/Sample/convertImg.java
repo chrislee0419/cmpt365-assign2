@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Insets;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.PixelGrabber;
@@ -15,7 +16,7 @@ import javax.imageio.*;
 
 public class convertImg extends JFrame implements ActionListener{
 	
-	JButton m_btOpen, m_btSave, m_btConvert; 
+	JButton m_btOpen, m_btSave, m_btConvert, but_default, but_high, but_recommended, but_low; 
 	IMGPanel	m_panelImgInput, compressed_output,
 				m_panelImgOutputY, m_panelImgOutputU, m_panelImgOutputV,
 				compressed_y_panel, compressed_u_panel, compressed_v_panel;
@@ -25,6 +26,7 @@ public class convertImg extends JFrame implements ActionListener{
 	final JFileChooser m_fc = new JFileChooser();
 	
 	float[] y_values, u_values, v_values;
+	int picture_quality = 0;
     static Matrix[][] dct_mat;
     static Matrix[][] quantized_mat;
     
@@ -47,7 +49,7 @@ public class convertImg extends JFrame implements ActionListener{
 	    JPanel panelButtons = new JPanel();
 	    panelButtons.setLayout(null);
 	    panelButtons.setLocation(420, 50);
-	    panelButtons.setSize(100, 160);
+	    panelButtons.setSize(100, 450);
         totalGUI.add(panelButtons);
         
         // Y COMPONENT
@@ -76,16 +78,48 @@ public class convertImg extends JFrame implements ActionListener{
 	    panelButtons.add(m_btOpen);
 	    
 	    m_btSave = new JButton("Save");
-	    m_btSave.setLocation(0, 60);
+	    m_btSave.setLocation(0, 50);
 	    m_btSave.setSize(100, 40);
 	    m_btSave.addActionListener(this);
 	    panelButtons.add(m_btSave);
 	    
 	    m_btConvert = new JButton("Compress");
-	    m_btConvert.setLocation(0, 120);
-	    m_btConvert.setSize(100, 40);
+	    m_btConvert.setLocation(0, 140);
+	    m_btConvert.setSize(100, 60);
 	    m_btConvert.addActionListener(this);
 	    panelButtons.add(m_btConvert);
+	    
+	    but_default = new JButton("Default Quality");
+	    but_default.setMargin(new Insets(0,0,0,0));
+	    but_default.setFont(new Font("Arial", Font.PLAIN, 12));
+	    but_default.setLocation(0, 250);
+	    but_default.setSize(100, 40);
+	    but_default.addActionListener(this);
+	    panelButtons.add(but_default);
+	    
+	    but_high = new JButton("High Quality");
+	    but_high.setMargin(new Insets(0,0,0,0));
+	    but_high.setFont(new Font("Arial", Font.PLAIN, 12));
+	    but_high.setLocation(0, 300);
+	    but_high.setSize(100, 40);
+	    but_high.addActionListener(this);
+	    panelButtons.add(but_high);
+	    
+	    but_recommended = new JButton("Recommended");
+	    but_recommended.setMargin(new Insets(0,0,0,0));
+	    but_recommended.setFont(new Font("Arial", Font.PLAIN, 12));
+	    but_recommended.setLocation(0, 350);
+	    but_recommended.setSize(100, 40);
+	    but_recommended.addActionListener(this);
+	    panelButtons.add(but_recommended);
+	    
+	    but_low = new JButton("Low Quality");
+	    but_low.setMargin(new Insets(0,0,0,0));
+	    but_low.setFont(new Font("Arial", Font.PLAIN, 12));
+	    but_low.setLocation(0, 400);
+	    but_low.setSize(100, 40);
+	    but_low.addActionListener(this);
+	    panelButtons.add(but_low);
 	    	    
 	    totalGUI.setOpaque(true);
 	    return totalGUI;
@@ -136,22 +170,30 @@ public class convertImg extends JFrame implements ActionListener{
         int w_sub = w/2 + w%2;
         int h_sub = h/2 + h%2;
         
-        // use JPEG compression
-        float[] compressed_y = compressComponent(y_values, w, h, 1);
-        float[] compressed_u = compressComponent(u_values_sub, w_sub, h_sub, 2);
-        float[] compressed_v = compressComponent(v_values_sub, w_sub, h_sub, 2);
+        // determine the quality we will use
+        int y_quality, uv_quality;
+        switch (picture_quality) {
+        	case 1:
+        		y_quality = 3;
+        		uv_quality = 3;
+        		break;
+        	case 2:
+        		y_quality = 1;
+        		uv_quality = 2;
+        		break;
+        	case 3:
+        		y_quality = 4;
+        		uv_quality = 4;
+        		break;
+        	default:
+        		y_quality = -1;
+        		uv_quality = -1;
+        }
         
-        // convert back to 8 bit for previewing
-//        int[] converted_y = new int[w*h];
-//        int[] converted_u = new int[w_sub*h_sub];
-//        int[] converted_v = new int[w_sub*h_sub];
-//        for (int i = 0; i < w*h; i++) {
-//        	converted_y[i] = convertTo256(compressed_y[i]);
-//        }
-//        for (int i = 0; i < w_sub*h_sub; i++) {
-//        	converted_u[i] = convertTo256(compressed_u[i]);
-//        	converted_v[i] = convertTo256(compressed_v[i]);
-//        }
+        // use JPEG compression
+        float[] compressed_y = compressComponent(y_values, w, h, y_quality);
+        float[] compressed_u = compressComponent(u_values_sub, w_sub, h_sub, uv_quality);
+        float[] compressed_v = compressComponent(v_values_sub, w_sub, h_sub, uv_quality);
         
         // expand the subsampled components back to their original resolution
         float[] expanded_compressed_u = expandSubsample(compressed_u, w, h);
@@ -206,9 +248,6 @@ public class convertImg extends JFrame implements ActionListener{
         // FINAL RGB PICTURE
         compressed_output_buffer = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
         compressed_output_buffer.setRGB(0, 0, w, h, output_picture, 0, w);
-//    	raster = (WritableRaster) compressed_output_buffer.getData();
-//    	raster.setPixels(0, 0, w, h, output_picture);
-//    	compressed_output_buffer.setData(raster);
     	compressed_output.setBufferedImage(compressed_output_buffer);	
         
 	}
@@ -415,6 +454,16 @@ public class convertImg extends JFrame implements ActionListener{
             	}
         	}
         }
+    	
+    	// QUALITY SETTINGS
+        else if (evnt.getSource() == but_default)
+        	picture_quality = 0;
+        else if (evnt.getSource() == but_high)
+			picture_quality = 1;
+        else if (evnt.getSource() == but_recommended)
+        	picture_quality = 2;
+        else if (evnt.getSource() == but_low)
+        	picture_quality = 3;
     }
 	
     private static void createAndShowGUI() {
@@ -430,46 +479,6 @@ public class convertImg extends JFrame implements ActionListener{
     }
     
 	public static void main(String[] args) {
-//		float[] arr = {
-//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
-//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
-//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
-//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
-//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
-//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
-//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
-//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
-//				
-//				0, 255, 0, 255, 0, 255, 0, 255,			 0, 255, 0, 255, 0, 255, 0, 255,
-//				0, 255, 0, 255, 0, 255, 0, 255,			 255, 0, 255, 0, 255, 0, 255, 0,
-//				0, 255, 0, 255, 0, 255, 0, 255,			 0, 255, 0, 255, 0, 255, 0, 255,
-//				0, 255, 0, 255, 0, 255, 0, 255,			 255, 0, 255, 0, 255, 0, 255, 0,
-//				0, 255, 0, 255, 0, 255, 0, 255,			 0, 255, 0, 255, 0, 255, 0, 255,
-//				0, 255, 0, 255, 0, 255, 0, 255,			 255, 0, 255, 0, 255, 0, 255, 0,
-//				0, 255, 0, 255, 0, 255, 0, 255,			 0, 255, 0, 255, 0, 255, 0, 255,
-//				0, 255, 0, 255, 0, 255, 0, 255,			 255, 0, 255, 0, 255, 0, 255, 0,
-//				
-//				0, 64, 128, 255, 0, 64, 128, 255,		0, 64, 128, 255, 0, 64, 128, 255,
-//				0, 64, 128, 255, 0, 64, 128, 255,		64, 128, 255, 0, 64, 128, 255, 0,
-//				0, 64, 128, 255, 0, 64, 128, 255,		128, 255, 0, 64, 128, 255, 0, 64,
-//				0, 64, 128, 255, 0, 64, 128, 255,		255, 0, 64, 128, 255, 0, 64, 128,
-//				0, 64, 128, 255, 0, 64, 128, 255,		0, 64, 128, 255, 0, 64, 128, 255,
-//				0, 64, 128, 255, 0, 64, 128, 255,		64, 128, 255, 0, 64, 128, 255, 0,
-//				0, 64, 128, 255, 0, 64, 128, 255,		128, 255, 0, 64, 128, 255, 0, 64,
-//				0, 64, 128, 255, 0, 64, 128, 255,		255, 0, 64, 128, 255, 0, 64, 128,
-//				
-//				64, 128, 64, 128, 64, 128, 64, 128, 	64, 128, 64, 128, 64, 128, 64, 128,
-//				64, 128, 64, 128, 64, 128, 64, 128,		128, 64, 128, 64, 128, 64, 128, 64,
-//				64, 128, 64, 128, 64, 128, 64, 128, 	64, 128, 64, 128, 64, 128, 64, 128,
-//				64, 128, 64, 128, 64, 128, 64, 128, 	128, 64, 128, 64, 128, 64, 128, 64,
-//				64, 128, 64, 128, 64, 128, 64, 128, 	64, 128, 64, 128, 64, 128, 64, 128,
-//				64, 128, 64, 128, 64, 128, 64, 128,		128, 64, 128, 64, 128, 64, 128, 64,
-//				64, 128, 64, 128, 64, 128, 64, 128, 	64, 128, 64, 128, 64, 128, 64, 128,
-//				64, 128, 64, 128, 64, 128, 64, 128,		128, 64, 128, 64, 128, 64, 128, 64,
-//		};
-//		compressComponent(arr, 16, 32, -1);
-		
-
 		
         //Schedule a job for the event-dispatching thread:
         //creating and showing this application's GUI.

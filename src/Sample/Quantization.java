@@ -33,6 +33,16 @@ public class Quantization{
 			{2, 3, 4, 4, 5, 6, 6, 5},
 			{4, 5, 5, 5, 6, 5, 5, 5}};
 	
+	private static float[][] lqt_low_quality = {
+			{40, 50, 60, 70, 80, 90, 100, 100},
+			{50, 60, 70, 80, 90, 100, 100, 100},
+			{60, 70, 80, 90, 100, 100, 100, 100},
+			{70, 80, 90, 100, 100, 100, 100, 125},
+			{80, 90, 100, 100, 100, 100, 125, 150},
+			{90, 100, 100, 100, 100, 125, 150, 175},
+			{100, 100, 100, 100, 125, 150, 175, 200},
+			{100, 100, 100, 125, 150, 175, 200, 200}};
+	
 	private static float[][] lqt_default = {
 			{1, 1, 1, 1, 1, 1, 1, 1},
 			{1, 1, 1, 1, 1, 1, 1, 1},
@@ -69,6 +79,9 @@ public class Quantization{
 		    	break;
 	    	case 3:
 	    		lqt = lqt_high_quality;
+	    		break;
+	    	case 4:
+	    		lqt = lqt_low_quality;
 	    		break;
 	    	default:
 		    	lqt = lqt_default;
