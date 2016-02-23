@@ -202,9 +202,9 @@ public class convertImg extends JFrame implements ActionListener{
         int h_sub = h/2 + h%2;
         
         // use JPEG compression
-        float[] compressed_y = compressComponent(y_values, w, h, -1);
-        float[] compressed_u = compressComponent(u_values_sub, w_sub, h_sub, -2);
-        float[] compressed_v = compressComponent(v_values_sub, w_sub, h_sub, -2);
+        float[] compressed_y = compressComponent(y_values, w, h, 3);
+        float[] compressed_u = compressComponent(u_values_sub, w_sub, h_sub, 2);
+        float[] compressed_v = compressComponent(v_values_sub, w_sub, h_sub, 2);
         
         // convert back to 8 bit for previewing
         int[] converted_y = new int[w*h];
@@ -343,15 +343,15 @@ public class convertImg extends JFrame implements ActionListener{
         
         for (int i = 0; i < Math.ceil((double)h/8); i++) {
         	for (int j = 0; j < Math.ceil((double)w/8); j++) {
-        		if (i == 0 && j == 0)
-        			System.out.println("For mat[" + i + "][" + j + "]:");
-        			mat[i][j].print();
+//        		if (i == 0 && j == 0)
+//        			System.out.println("For mat[" + i + "][" + j + "]:");
+//        			mat[i][j].print();
         		dct_mat[i][j] = Transform.dctransform(mat[i][j]);
         		quantized_mat[i][j] = Quantization.quantize(dct_mat[i][j], quality);
         		temp = Quantization.inv_quantize(quantized_mat[i][j], quality);
         		mat[i][j] = Transform.inv_dctransform(temp);
-        		if (i == 0 && j == 0)
-        			mat[i][j].print();
+//        		if (i == 0 && j == 0)
+//        			mat[i][j].print();
         	}
         }
         
@@ -360,11 +360,11 @@ public class convertImg extends JFrame implements ActionListener{
 
 	// takes an average of 2 by 2 blocks to reduce chroma resolution
 	// divide width and height by 2, take ceiling
-	private float[] subsample(float[] values, int w, int h) {
+	private static float[] subsample(float[] values, int w, int h) {
 		boolean odd_width = (w % 2 == 1);
 		boolean odd_height = (h % 2 == 1);
 		float[] result = new float[(w/2 + w%2) * (h/2 + h%2)];
-		int holder;
+		float holder;
 		
 		for (int y = 0; y < (h/2); y++) {
 			for (int x = 0; x < (w/2); x++) {
@@ -389,6 +389,7 @@ public class convertImg extends JFrame implements ActionListener{
 				holder = 0;
 				holder += values[(h-1) * w + 2*x];
 				holder += values[(h-1) * w + 2*x + 1];
+				holder /= 2;
 				result[(h/2)*(w/2 + w%2) + x] = holder;
 			}
 			if (odd_width) {
@@ -495,26 +496,19 @@ public class convertImg extends JFrame implements ActionListener{
     
 	public static void main(String[] args) {
 		
-//		float[][] arr = {
-//				{100,75,50,25,5,5,5,5},
-//				{75,50,25,5,5,5,5,5},
-//				{50,25,5,5,5,5,5,5},
-//				{25,5,5,5,5,5,5,5},
-//				{5,5,5,5,5,5,5,5},
-//				{5,5,5,5,5,5,5,5},
-//				{5,5,5,5,5,5,5,5},
-//				{5,5,5,5,5,5,5,5}
-//		};
-//		Matrix mat = new Matrix(arr);
-//		mat.print();
-//		Matrix mat2 = Transform.dctransform(mat);
-//		mat2.print();
-//		Matrix quant = Quantization.quantize(mat2, 1);
-//		quant.print();
-//		mat2 = Quantization.inv_quantize(quant, 1);
-//		mat2.print();
-//		mat = Transform.inv_dctransform(mat2);
-//		mat.print();
+//		float[] arr = 
+//				{1,2,3,4,5,6,7,
+//				8,9,10,11,12,13,14,
+//				1,2,3,4,5,6,7,
+//				8,9,10,11,12,13,14,
+//				1,2,3,4,5,6,7,
+//				8,9,10,11,12,13,14,
+//				1,2,3,4,5,6,7};
+//		float[] arr2 = subsample(arr, 7, 7);
+//		for (int i = 0; i < 16; i++) {
+//			if (i%4 == 0) {System.out.println(""); System.out.print(arr2[i]);}
+//			else System.out.print(" " + arr2[i]);
+//			}
 		
         //Schedule a job for the event-dispatching thread:
         //creating and showing this application's GUI.
