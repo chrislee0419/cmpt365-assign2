@@ -343,12 +343,15 @@ public class convertImg extends JFrame implements ActionListener{
         
         for (int i = 0; i < Math.ceil((double)h/8); i++) {
         	for (int j = 0; j < Math.ceil((double)w/8); j++) {
-        		//if (i == 0 && j == 0)
-        			//mat[i][j].print();
+        		if (i == 0 && j == 0)
+        			System.out.println("For mat[" + i + "][" + j + "]:");
+        			mat[i][j].print();
         		dct_mat[i][j] = Transform.dctransform(mat[i][j]);
         		quantized_mat[i][j] = Quantization.quantize(dct_mat[i][j], quality);
         		temp = Quantization.inv_quantize(quantized_mat[i][j], quality);
         		mat[i][j] = Transform.inv_dctransform(temp);
+        		if (i == 0 && j == 0)
+        			mat[i][j].print();
         	}
         }
         
@@ -426,18 +429,14 @@ public class convertImg extends JFrame implements ActionListener{
 	
 	// convert an 8 bit integer [0, 255] to float from [-1, 1)
 	private float convertFrom256(int num) {
-		float result;
 		num -= 128;
-		result = (float)num/128;
-		return result;
+		return (float)num/128;
 	}
 	
 	// convert a float [-1, 1) to an 8 bit integer [0, 255]
 	private int convertTo256(float num) {
-		int result;
 		num *= 128;
-		result = (int)num + 128;
-		return result;
+		return (int)num + 128;
 	}
 	
     // This is the new ActionPerformed Method.
@@ -495,6 +494,27 @@ public class convertImg extends JFrame implements ActionListener{
     }
     
 	public static void main(String[] args) {
+		
+//		float[][] arr = {
+//				{100,75,50,25,5,5,5,5},
+//				{75,50,25,5,5,5,5,5},
+//				{50,25,5,5,5,5,5,5},
+//				{25,5,5,5,5,5,5,5},
+//				{5,5,5,5,5,5,5,5},
+//				{5,5,5,5,5,5,5,5},
+//				{5,5,5,5,5,5,5,5},
+//				{5,5,5,5,5,5,5,5}
+//		};
+//		Matrix mat = new Matrix(arr);
+//		mat.print();
+//		Matrix mat2 = Transform.dctransform(mat);
+//		mat2.print();
+//		Matrix quant = Quantization.quantize(mat2, 1);
+//		quant.print();
+//		mat2 = Quantization.inv_quantize(quant, 1);
+//		mat2.print();
+//		mat = Transform.inv_dctransform(mat2);
+//		mat.print();
 		
         //Schedule a job for the event-dispatching thread:
         //creating and showing this application's GUI.

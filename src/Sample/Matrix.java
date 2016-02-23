@@ -319,9 +319,14 @@ public class Matrix {
 	// static form of element-wise division that returns a new matrix
 		public static Matrix elementwiseDivide(Matrix A, Matrix B) {
 			float[][] arr = new float[8][8];
+			float temp;
 			for (int y = 0; y < 8; y++) {
 				for (int x = 0; x < 8; x++) {
-					arr[y][x] = (float)Math.floor(A.getElement(x, y) / B.getElement(x, y));
+					temp = A.getElement(x, y) / B.getElement(x, y);
+					if (temp < 0)
+						arr[y][x] = (float)Math.ceil(temp);
+					else
+						arr[y][x] = (float)Math.floor(temp);
 				}
 			}
 			Matrix result = new Matrix(arr);
@@ -330,9 +335,14 @@ public class Matrix {
 	
 	// element-wise scalar integer division
 		public void elementwiseDivide(Matrix A) {
+			float temp;
 			for (int y = 0; y < 8; y++) {
 				for (int x = 0; x < 8; x++) {
-					mat[y][x] = (float)Math.floor(mat[y][x] / A.getElement(x, y));
+					temp = mat[y][x] / A.getElement(x, y);
+					if (temp < 0)
+						mat[y][x] = (float)Math.ceil(temp);
+					else
+						mat[y][x] = (float)Math.floor(temp);
 				}
 			}
 		}
