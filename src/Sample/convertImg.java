@@ -38,30 +38,10 @@ public class convertImg extends JFrame implements ActionListener{
         totalGUI.setLayout(null);
 	    
         // ORIGINAL PICTURE
-        m_panelImgInput = new IMGPanel();        
-        m_panelImgInput.setLocation(10, 10);
-        m_panelImgInput.setSize(400, 400);
-        m_panelImgInput.setBorder(BorderFactory.createLineBorder(Color.black));
-	    totalGUI.add(m_panelImgInput);
-	    
-	    JLabel input_label = new JLabel();
-	    input_label.setText("Original Picture");
-	    input_label.setBounds(110, 420, 200, 30);
-	    input_label.setFont(new Font("Verdana", 1, 16));
-	    totalGUI.add(input_label);
+        m_panelImgInput = preparePicture(totalGUI, 10, 10, 400, 400, "Original Picture");
 	    
 	    // COMPRESSED PICTURE
-	    compressed_output = new IMGPanel();        
-	    compressed_output.setLocation(10, 460);
-	    compressed_output.setSize(400, 400);
-	    compressed_output.setBorder(BorderFactory.createLineBorder(Color.black));
-	    totalGUI.add(compressed_output);
-	    
-	    JLabel compressed_output_label = new JLabel();
-	    compressed_output_label.setText("Compressed Picture");
-	    compressed_output_label.setBounds(110, 870, 200, 30);
-	    compressed_output_label.setFont(new Font("Verdana", 1, 16));
-	    totalGUI.add(compressed_output_label);
+        compressed_output = preparePicture(totalGUI, 10, 460, 400, 400, "Compressed Picture");
 	    
 	    // create a panel for buttons
 	    JPanel panelButtons = new JPanel();
@@ -71,82 +51,22 @@ public class convertImg extends JFrame implements ActionListener{
         totalGUI.add(panelButtons);
         
         // Y COMPONENT
-        m_panelImgOutputY = new IMGPanel();
-        m_panelImgOutputY.setLocation(540, 10);
-        m_panelImgOutputY.setSize(400, 400);
-        m_panelImgOutputY.setBorder(BorderFactory.createLineBorder(Color.black));
-        totalGUI.add(m_panelImgOutputY);
-        
-        JLabel y_label = new JLabel();
-	    y_label.setText("Y Component");
-	    y_label.setBounds(590, 420, 100, 30);
-	    y_label.setFont(new Font("Verdana", 1, 16));
-	    totalGUI.add(y_label);
+        m_panelImgOutputY = preparePicture(totalGUI, 540, 10, 400, 400, "Y Component");
 	    
 	    // COMPRESSED Y COMPONENT
-        compressed_y_panel = new IMGPanel();
-        compressed_y_panel.setLocation(540, 460);
-        compressed_y_panel.setSize(400, 400);
-        compressed_y_panel.setBorder(BorderFactory.createLineBorder(Color.black));
-        totalGUI.add(compressed_y_panel);
-        
-        JLabel compressed_y_label = new JLabel();
-	    compressed_y_label.setText("Compressed Y Component");
-	    compressed_y_label.setBounds(640, 870, 200, 30);
-	    compressed_y_label.setFont(new Font("Verdana", 1, 16));
-	    totalGUI.add(compressed_y_label);
+        compressed_y_panel = preparePicture(totalGUI, 540, 460, 400, 400, "Compressed Y Component");
 
         // U COMPONENT
-        m_panelImgOutputU = new IMGPanel();
-        m_panelImgOutputU.setLocation(950, 10);
-        m_panelImgOutputU.setSize(400, 400);
-        m_panelImgOutputU.setBorder(BorderFactory.createLineBorder(Color.black));
-        totalGUI.add(m_panelImgOutputU);
-        
-        JLabel u_label = new JLabel();
-	    u_label.setText("U Component");
-	    u_label.setBounds(1050, 420, 200, 30);
-	    u_label.setFont(new Font("Verdana", 1, 16));
-	    totalGUI.add(u_label);
+        m_panelImgOutputU = preparePicture(totalGUI, 950, 10, 400, 400, "U Component");
 	    
 	    // COMPRESSED U COMPONENT
-        compressed_u_panel = new IMGPanel();
-        compressed_u_panel.setLocation(950, 460);
-        compressed_u_panel.setSize(400, 400);
-        compressed_u_panel.setBorder(BorderFactory.createLineBorder(Color.black));
-        totalGUI.add(compressed_u_panel);
-        
-        JLabel compressed_u_label = new JLabel();
-	    compressed_u_label.setText("Compressed U Component");
-	    compressed_u_label.setBounds(1050, 870, 200, 30);
-	    compressed_u_label.setFont(new Font("Verdana", 1, 16));
-	    totalGUI.add(compressed_u_label);
+        compressed_u_panel = preparePicture(totalGUI, 950, 460, 400, 400, "Compressed U Component");
 
 		// V COMPONENT
-        m_panelImgOutputV = new IMGPanel();
-        m_panelImgOutputV.setLocation(1360, 10);
-        m_panelImgOutputV.setSize(400, 400);
-        m_panelImgOutputV.setBorder(BorderFactory.createLineBorder(Color.black));
-        totalGUI.add(m_panelImgOutputV);
-        
-        JLabel v_label = new JLabel();
-	    v_label.setText("V Component");
-	    v_label.setBounds(1460, 420, 200, 30);
-	    v_label.setFont(new Font("Verdana", 1, 16));
-	    totalGUI.add(v_label);
+        m_panelImgOutputV = preparePicture(totalGUI, 1360, 10, 400, 400, "V Component");
 	    
 	    // COMPRESSED V COMPONENT
-        compressed_v_panel = new IMGPanel();
-        compressed_v_panel.setLocation(1360, 460);
-        compressed_v_panel.setSize(400, 400);
-        compressed_v_panel.setBorder(BorderFactory.createLineBorder(Color.black));
-        totalGUI.add(compressed_v_panel);
-        
-        JLabel compressed_v_label = new JLabel();
-	    compressed_v_label.setText("Compressed V Component");
-	    compressed_v_label.setBounds(1460, 870, 200, 30);
-	    compressed_v_label.setFont(new Font("Verdana", 1, 16));
-	    totalGUI.add(compressed_v_label);
+        compressed_v_panel = preparePicture(totalGUI, 1360, 460, 400, 400, "Compressed V Component");
 	    
 	    // BUTTONS
 	    m_btOpen = new JButton("Open");
@@ -169,6 +89,22 @@ public class convertImg extends JFrame implements ActionListener{
 	    	    
 	    totalGUI.setOpaque(true);
 	    return totalGUI;
+	}
+	
+	private static IMGPanel preparePicture(JPanel GUI, int xpos, int ypos, int width, int height, String label) {
+        IMGPanel panel = new IMGPanel();        
+        panel.setLocation(xpos, ypos);
+        panel.setSize(width, height);
+        panel.setBorder(BorderFactory.createLineBorder(Color.black));
+	    GUI.add(panel);
+	    
+	    JLabel input_label = new JLabel();
+	    input_label.setText(label);
+	    input_label.setBounds(xpos+20, ypos+height, width-40, 30);
+	    input_label.setFont(new Font("Verdana", 1, 16));
+	    GUI.add(input_label);
+	    
+	    return panel;
 	}
 	
 	/////////////////////
