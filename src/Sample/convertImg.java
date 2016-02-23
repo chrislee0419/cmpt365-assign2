@@ -297,6 +297,14 @@ public class convertImg extends JFrame implements ActionListener{
             y_values[index] = y_values[index] + 128;
             u_values[index] = u_values[index] + 128;
             v_values[index] = v_values[index] + 128;
+
+            // normalize values, otherwise we'll get odd colours
+            if (y_values[index] < 0) y_values[index] = 0;
+            else if (y_values[index] > 255) y_values[index] = 255;
+            if (u_values[index] < 0) u_values[index] = 0;
+            else if (u_values[index] > 255) u_values[index] = 255;
+            if (v_values[index] < 0) v_values[index] = 0;
+            else if(v_values[index] > 255) v_values[index] = 255;
         }
 	}
 	
