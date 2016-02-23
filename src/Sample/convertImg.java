@@ -221,7 +221,7 @@ public class convertImg extends JFrame implements ActionListener{
         float[] expanded_compressed_u = expandSubsample(compressed_u, w, h);
         float[] expanded_compressed_v = expandSubsample(compressed_v, w, h);
         
-        int[] output_picture = YUVtoRGB(compressed_y, expanded_compressed_u, expanded_compressed_v, w, h);
+        int[] output_picture = YUVtoRGB(inputValues, compressed_y, expanded_compressed_u, expanded_compressed_v, w, h);
     	
     	// NOT CONVERTED
         // write Y values to the first output image
@@ -268,7 +268,7 @@ public class convertImg extends JFrame implements ActionListener{
         compressed_v_panel.setBufferedImage(compressed_v_buffer);
         
         // FINAL RGB PICTURE
-        compressed_output_buffer = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
+        compressed_output_buffer = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
     	raster = (WritableRaster) compressed_output_buffer.getData();
     	raster.setPixels(0, 0, w, h, output_picture);
     	compressed_output_buffer.setData(raster);
@@ -310,7 +310,7 @@ public class convertImg extends JFrame implements ActionListener{
         
 	}
 	
-	private int[] YUVtoRGB(float[] y, float[] u, float[] v, int w, int h) {
+	private int[] YUVtoRGB(int[] input, float[] y, float[] u, float[] v, int w, int h) {
     	float[] r_values = new float[w*h];
         float[] g_values = new float[w*h];
         float[] b_values = new float[w*h];
@@ -328,7 +328,7 @@ public class convertImg extends JFrame implements ActionListener{
             green = convertTo256(g_values[index]);
             blue = convertTo256(b_values[index]);
             
-            rgb[index] = ((red << 16) & 0x00ff0000) & ((green << 8) & 0x0000ff00) & (blue & 0x000000ff);
+            rgb[index] = (input[index] & 0xff000000) | ((red << 16) & 0x00ff0000) | ((green << 8) & 0x0000ff00) | (blue & 0x000000ff);
         }
             
         return rgb;
@@ -431,13 +431,13 @@ public class convertImg extends JFrame implements ActionListener{
 	// convert an 8 bit integer [0, 255] to float from [-1, 1)
 	private float convertFrom256(int num) {
 		num -= 128;
-		return (float)num/128;
+		return (float)num / 128f;
 	}
 	
 	// convert a float [-1, 1) to an 8 bit integer [0, 255]
 	private int convertTo256(float num) {
 		num *= 128;
-		return (int)num + 128;
+		return (int)(num + 128);
 	}
 	
     // This is the new ActionPerformed Method.
