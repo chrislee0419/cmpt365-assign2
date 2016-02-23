@@ -205,6 +205,17 @@ public class Matrix {
 		return result;
 	}
 	
+	// NORMALIZATION
+	
+	public void normalizeValues() {
+		for (int i = 0; i < 64; i++) {
+			int x = i % 8;
+			int y = i / 8;
+			if (mat[y][x] < 0) mat[y][x] = 0f;
+			else if (mat[y][x] > 255) mat[y][x] = 255f;
+		}
+	}
+	
 	///////////////
 	// OPERATORS //
 	///////////////

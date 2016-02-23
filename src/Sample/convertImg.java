@@ -25,8 +25,8 @@ public class convertImg extends JFrame implements ActionListener{
 	final JFileChooser m_fc = new JFileChooser();
 	
 	float[] y_values, u_values, v_values;
-    Matrix[][] dct_mat;
-    Matrix[][] quantized_mat;
+    static Matrix[][] dct_mat;
+    static Matrix[][] quantized_mat;
     
     final static int window_width = 1800, window_height = 980;
 	
@@ -269,9 +269,10 @@ public class convertImg extends JFrame implements ActionListener{
         
         // FINAL RGB PICTURE
         compressed_output_buffer = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-    	raster = (WritableRaster) compressed_output_buffer.getData();
-    	raster.setPixels(0, 0, w, h, output_picture);
-    	compressed_output_buffer.setData(raster);
+        compressed_output_buffer.setRGB(0, 0, w, h, output_picture, 0, w);
+//    	raster = (WritableRaster) compressed_output_buffer.getData();
+//    	raster.setPixels(0, 0, w, h, output_picture);
+//    	compressed_output_buffer.setData(raster);
     	compressed_output.setBufferedImage(compressed_output_buffer);	
         
 	}
@@ -306,26 +307,42 @@ public class convertImg extends JFrame implements ActionListener{
         
         int[] rgb = new int[w*h];
         for (int index = 0; index < h * w; ++index) {
+        	if (y_arr[index] < 0) y_arr[index] = 0f;
+        	if (u_arr[index] < 0) u_arr[index] = 0f;
+        	if (v_arr[index] < 0) v_arr[index] = 0f;
+        	
         	y = y_arr[index] - 128;
         	u = u_arr[index] - 128;
         	v = v_arr[index] - 128;
         	
-        	r = (1f * y) + (1.13983f * v);
-            g = (1f * y) + (-0.39465f * u) + (-0.58060f * v);
-            b = (1f * y) + (2.03211f * u);
+        	r = y + (1.13983f * v);
+            g = y + (-0.39465f * u) + (-0.58060f * v);
+            b = y + (2.03211f * u);
             
             red = (int)r + 128;
             green = (int)g + 128;
             blue = (int)b + 128;
             
+            // normalize values, otherwise we'll get odd colours
+            if (red < 0) red = 0;
+            else if (red > 255) red = 255;
+            if (blue < 0) blue = 0;
+            else if (blue > 255) blue = 255;
+            if (green < 0) green = 0;
+            else if(green > 255) green = 255;
+            
             rgb[index] = (input[index] & 0xff000000) | ((red << 16) & 0x00ff0000) | ((green << 8) & 0x0000ff00) | (blue & 0x000000ff);
+//            rgb[index] = input[index];
+//            rgb[index + w*h] = red;
+//            rgb[index + 2*w*h] = green;
+//            rgb[index + 3*w*h] = blue;
         }
             
         return rgb;
 	}
 
     // split component into 8x8 block matrices
-	private float[] compressComponent(float[] arr, int w, int h, int quality) {
+	private static float[] compressComponent(float[] arr, int w, int h, int quality) {
         Matrix[][] mat = Matrix.array1DTo2DMatrix(arr, w, h);
         dct_mat = new Matrix[h][w];
         quantized_mat = new Matrix[h][w];
@@ -333,15 +350,11 @@ public class convertImg extends JFrame implements ActionListener{
         
         for (int i = 0; i < Math.ceil((double)h/8); i++) {
         	for (int j = 0; j < Math.ceil((double)w/8); j++) {
-//        		if (i == 0 && j == 0)
-//        			System.out.println("For mat[" + i + "][" + j + "]:");
-//        			mat[i][j].print();
         		dct_mat[i][j] = Transform.dctransform(mat[i][j]);
         		quantized_mat[i][j] = Quantization.quantize(dct_mat[i][j], quality);
         		temp = Quantization.inv_quantize(quantized_mat[i][j], quality);
         		mat[i][j] = Transform.inv_dctransform(temp);
-//        		if (i == 0 && j == 0)
-//        			mat[i][j].print();
+        		mat[i][j].normalizeValues();
         	}
         }
         
@@ -444,7 +457,7 @@ public class convertImg extends JFrame implements ActionListener{
         }
         // button SAVE is clicked
         else if(evnt.getSource() == m_btSave){
-        	if(m_imgOutputY == null)
+        	if(compressed_output_buffer == null)
         		return;
         	m_fc.addChoosableFileFilter(new ImageFilter());
         	m_fc.setAcceptAllFileFilterUsed(false);
@@ -452,7 +465,7 @@ public class convertImg extends JFrame implements ActionListener{
         	if (returnVal == JFileChooser.APPROVE_OPTION) {
         		File file = m_fc.getSelectedFile();	
         		try {
-            	    ImageIO.write(m_imgOutputY, "jpg", file);
+            	    ImageIO.write(compressed_output_buffer, "jpg", file);
             	} catch (IOException e) {
             		//...
             	}
@@ -473,20 +486,46 @@ public class convertImg extends JFrame implements ActionListener{
     }
     
 	public static void main(String[] args) {
+//		float[] arr = {
+//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
+//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
+//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
+//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
+//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
+//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
+//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
+//				255, 255, 255, 255, 255, 255, 255, 255,		 0, 0, 0, 0, 0, 0, 0, 0,
+//				
+//				0, 255, 0, 255, 0, 255, 0, 255,			 0, 255, 0, 255, 0, 255, 0, 255,
+//				0, 255, 0, 255, 0, 255, 0, 255,			 255, 0, 255, 0, 255, 0, 255, 0,
+//				0, 255, 0, 255, 0, 255, 0, 255,			 0, 255, 0, 255, 0, 255, 0, 255,
+//				0, 255, 0, 255, 0, 255, 0, 255,			 255, 0, 255, 0, 255, 0, 255, 0,
+//				0, 255, 0, 255, 0, 255, 0, 255,			 0, 255, 0, 255, 0, 255, 0, 255,
+//				0, 255, 0, 255, 0, 255, 0, 255,			 255, 0, 255, 0, 255, 0, 255, 0,
+//				0, 255, 0, 255, 0, 255, 0, 255,			 0, 255, 0, 255, 0, 255, 0, 255,
+//				0, 255, 0, 255, 0, 255, 0, 255,			 255, 0, 255, 0, 255, 0, 255, 0,
+//				
+//				0, 64, 128, 255, 0, 64, 128, 255,		0, 64, 128, 255, 0, 64, 128, 255,
+//				0, 64, 128, 255, 0, 64, 128, 255,		64, 128, 255, 0, 64, 128, 255, 0,
+//				0, 64, 128, 255, 0, 64, 128, 255,		128, 255, 0, 64, 128, 255, 0, 64,
+//				0, 64, 128, 255, 0, 64, 128, 255,		255, 0, 64, 128, 255, 0, 64, 128,
+//				0, 64, 128, 255, 0, 64, 128, 255,		0, 64, 128, 255, 0, 64, 128, 255,
+//				0, 64, 128, 255, 0, 64, 128, 255,		64, 128, 255, 0, 64, 128, 255, 0,
+//				0, 64, 128, 255, 0, 64, 128, 255,		128, 255, 0, 64, 128, 255, 0, 64,
+//				0, 64, 128, 255, 0, 64, 128, 255,		255, 0, 64, 128, 255, 0, 64, 128,
+//				
+//				64, 128, 64, 128, 64, 128, 64, 128, 	64, 128, 64, 128, 64, 128, 64, 128,
+//				64, 128, 64, 128, 64, 128, 64, 128,		128, 64, 128, 64, 128, 64, 128, 64,
+//				64, 128, 64, 128, 64, 128, 64, 128, 	64, 128, 64, 128, 64, 128, 64, 128,
+//				64, 128, 64, 128, 64, 128, 64, 128, 	128, 64, 128, 64, 128, 64, 128, 64,
+//				64, 128, 64, 128, 64, 128, 64, 128, 	64, 128, 64, 128, 64, 128, 64, 128,
+//				64, 128, 64, 128, 64, 128, 64, 128,		128, 64, 128, 64, 128, 64, 128, 64,
+//				64, 128, 64, 128, 64, 128, 64, 128, 	64, 128, 64, 128, 64, 128, 64, 128,
+//				64, 128, 64, 128, 64, 128, 64, 128,		128, 64, 128, 64, 128, 64, 128, 64,
+//		};
+//		compressComponent(arr, 16, 32, -1);
 		
-//		float[] arr = 
-//				{1,2,3,4,5,6,7,
-//				8,9,10,11,12,13,14,
-//				1,2,3,4,5,6,7,
-//				8,9,10,11,12,13,14,
-//				1,2,3,4,5,6,7,
-//				8,9,10,11,12,13,14,
-//				1,2,3,4,5,6,7};
-//		float[] arr2 = subsample(arr, 7, 7);
-//		for (int i = 0; i < 16; i++) {
-//			if (i%4 == 0) {System.out.println(""); System.out.print(arr2[i]);}
-//			else System.out.print(" " + arr2[i]);
-//			}
+
 		
         //Schedule a job for the event-dispatching thread:
         //creating and showing this application's GUI.
