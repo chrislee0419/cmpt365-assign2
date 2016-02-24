@@ -2,6 +2,7 @@ package Sample;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Font;
@@ -16,21 +17,29 @@ import javax.imageio.*;
 
 public class convertImg extends JFrame implements ActionListener{
 	
-	JButton m_btOpen, m_btSave, m_btConvert, but_default, but_high, but_recommended, but_low; 
+	JButton m_btOpen, m_btSave, m_btConvert,
+			but_default, but_high, but_recommended, but_low,
+			but_preview; 
 	IMGPanel	m_panelImgInput, compressed_output,
 				m_panelImgOutputY, m_panelImgOutputU, m_panelImgOutputV,
 				compressed_y_panel, compressed_u_panel, compressed_v_panel;
 	BufferedImage 	m_imgInput, m_imgOutputY, m_imgOutputU, m_imgOutputV,
 					compressed_y_buffer, compressed_u_buffer, compressed_v_buffer, compressed_output_buffer;
+	JFormattedTextField x_textfield, y_textfield;
+	static JLabel width_label, height_label;
+	
 	//Create a file chooser
 	final JFileChooser m_fc = new JFileChooser();
 	
+	static int picture_width = 0, picture_height = 0;
 	float[] y_values, u_values, v_values;
 	int picture_quality = 0;
     static Matrix[][] dct_mat;
     static Matrix[][] quantized_mat;
     
     final static int window_width = 1800, window_height = 980;
+
+    private NumberFormat number_format;
 	
 	//setup some GUI stuff
 	public JPanel createContentPane (){	    
@@ -38,19 +47,16 @@ public class convertImg extends JFrame implements ActionListener{
 		// We create a bottom JPanel to place everything on.
         JPanel totalGUI = new JPanel();
         totalGUI.setLayout(null);
+        
+        //////////////
+        // DISPLAYS //
+        //////////////
 	    
         // ORIGINAL PICTURE
         m_panelImgInput = preparePicture(totalGUI, 10, 10, 400, 400, "Original Picture");
 	    
 	    // COMPRESSED PICTURE
         compressed_output = preparePicture(totalGUI, 10, 460, 400, 400, "Compressed Picture");
-	    
-	    // create a panel for buttons
-	    JPanel panelButtons = new JPanel();
-	    panelButtons.setLayout(null);
-	    panelButtons.setLocation(420, 50);
-	    panelButtons.setSize(100, 450);
-        totalGUI.add(panelButtons);
         
         // Y COMPONENT
         m_panelImgOutputY = preparePicture(totalGUI, 540, 10, 400, 400, "Y Component");
@@ -70,60 +76,87 @@ public class convertImg extends JFrame implements ActionListener{
 	    // COMPRESSED V COMPONENT
         compressed_v_panel = preparePicture(totalGUI, 1360, 460, 400, 400, "Compressed V Component");
 	    
-	    // BUTTONS
+        /////////////
+        // BUTTONS //
+        /////////////
+        
+	    // create a panel for buttons
+	    JPanel panelButtons = new JPanel();
+	    panelButtons.setLayout(null);
+	    panelButtons.setLocation(420, 50);
+	    panelButtons.setSize(100, 450);
+        totalGUI.add(panelButtons);
+
+	    // create a panel for previewing 8x8 blocks
+	    JPanel block_preview_panel = new JPanel();
+        block_preview_panel.setBorder(BorderFactory.createLineBorder(Color.black));
+	    block_preview_panel.setLayout(null);
+	    block_preview_panel.setLocation(420, 550);
+	    block_preview_panel.setSize(100, 300);
+        totalGUI.add(block_preview_panel);
+	    
+	    // OPEN
 	    m_btOpen = new JButton("Open");
-	    m_btOpen.setLocation(0, 0);
-	    m_btOpen.setSize(100, 40);
+	    prepareButton(m_btOpen, 0, 0, 100, 40);
 	    m_btOpen.addActionListener(this);
 	    panelButtons.add(m_btOpen);
 	    
+	    // SAVE
 	    m_btSave = new JButton("Save");
-	    m_btSave.setLocation(0, 50);
-	    m_btSave.setSize(100, 40);
+	    prepareButton(m_btSave, 0, 50, 100, 40);
 	    m_btSave.addActionListener(this);
 	    panelButtons.add(m_btSave);
 	    
+	    // COMPRESS
 	    m_btConvert = new JButton("Compress");
-	    m_btConvert.setLocation(0, 140);
-	    m_btConvert.setSize(100, 60);
+	    prepareButton(m_btConvert, 0, 140, 100, 60);
 	    m_btConvert.addActionListener(this);
 	    panelButtons.add(m_btConvert);
 	    
+	    // QUALITY
 	    but_default = new JButton("Default Quality");
-	    but_default.setMargin(new Insets(0,0,0,0));
-	    but_default.setFont(new Font("Arial", Font.PLAIN, 12));
-	    but_default.setLocation(0, 250);
-	    but_default.setSize(100, 40);
+	    prepareButton(but_default, 0, 250, 100, 40);
 	    but_default.addActionListener(this);
 	    panelButtons.add(but_default);
 	    
 	    but_high = new JButton("High Quality");
-	    but_high.setMargin(new Insets(0,0,0,0));
-	    but_high.setFont(new Font("Arial", Font.PLAIN, 12));
-	    but_high.setLocation(0, 300);
-	    but_high.setSize(100, 40);
+	    prepareButton(but_high, 0, 300, 100, 40);
 	    but_high.addActionListener(this);
 	    panelButtons.add(but_high);
 	    
 	    but_recommended = new JButton("Recommended");
-	    but_recommended.setMargin(new Insets(0,0,0,0));
-	    but_recommended.setFont(new Font("Arial", Font.PLAIN, 12));
-	    but_recommended.setLocation(0, 350);
-	    but_recommended.setSize(100, 40);
+	    prepareButton(but_recommended, 0, 350, 100, 40);
 	    but_recommended.addActionListener(this);
 	    panelButtons.add(but_recommended);
-	    
+
 	    but_low = new JButton("Low Quality");
-	    but_low.setMargin(new Insets(0,0,0,0));
-	    but_low.setFont(new Font("Arial", Font.PLAIN, 12));
-	    but_low.setLocation(0, 400);
-	    but_low.setSize(100, 40);
+	    prepareButton(but_low, 0, 400, 100, 40);
 	    but_low.addActionListener(this);
 	    panelButtons.add(but_low);
+	    
+	    // 8x8 BLOCK PREVIEWS
+	    prepareTextInput();
+        block_preview_panel.add(x_textfield);
+        block_preview_panel.add(y_textfield);
+	    prepareLabel(block_preview_panel, 0, 5, 100, 20, "INFO", 14);
+	    prepareLabel(block_preview_panel, 0, 25, 100, 20, "Width [8x8]", 12);
+	    prepareRefreshableLabels(block_preview_panel, 0, 45, 100, 15);
+	    prepareLabel(block_preview_panel, 0, 65, 100, 20, "Height [8x8]", 12);
+	    prepareLabel(block_preview_panel, 0, 110, 100, 20, "PREVIEW Y", 14);
+	    prepareLabel(block_preview_panel, 0, 130, 100, 20, "X Block", 12);
+	    prepareLabel(block_preview_panel, 0, 175, 100, 20, "Y Block", 12);
+	    but_preview = new JButton("Preview 8x8");
+	    prepareButton(but_preview, 10, 240, 80, 50);
+	    but_preview.addActionListener(this);
+	    block_preview_panel.add(but_preview);
 	    	    
 	    totalGUI.setOpaque(true);
 	    return totalGUI;
 	}
+	
+	//////////////////////////
+	// PREPARE GUI ELEMENTS //
+	//////////////////////////
 	
 	private static IMGPanel preparePicture(JPanel GUI, int xpos, int ypos, int width, int height, String label) {
         IMGPanel panel = new IMGPanel();        
@@ -132,13 +165,62 @@ public class convertImg extends JFrame implements ActionListener{
         panel.setBorder(BorderFactory.createLineBorder(Color.black));
 	    GUI.add(panel);
 	    
-	    JLabel input_label = new JLabel();
-	    input_label.setText(label);
-	    input_label.setBounds(xpos+20, ypos+height, width-40, 30);
-	    input_label.setFont(new Font("Verdana", 1, 16));
-	    GUI.add(input_label);
+	    prepareLabel(GUI, xpos+20, ypos+height, width-40, 30, label, 16);
 	    
 	    return panel;
+	}
+	
+	private static void prepareLabel(JPanel GUI, int xpos, int ypos, int width, int height, String label, int textsize) {
+		JLabel input_label = new JLabel();
+	    input_label.setText(label);
+	    input_label.setHorizontalAlignment(SwingConstants.CENTER);
+	    input_label.setVerticalAlignment(SwingConstants.CENTER);
+	    input_label.setBounds(xpos, ypos, width, height);
+	    input_label.setFont(new Font("Verdana", 1, textsize));
+	    GUI.add(input_label);
+	}
+	
+	private static void prepareRefreshableLabels(JPanel GUI, int xpos, int ypos, int width, int height) {
+		width_label = new JLabel();
+		width_label.setText("" + picture_width + " [" + (int)Math.ceil(picture_width/8) + "]");
+		width_label.setHorizontalAlignment(SwingConstants.CENTER);
+		width_label.setVerticalAlignment(SwingConstants.CENTER);
+		width_label.setBounds(xpos, ypos, width, height);
+		width_label.setFont(new Font("Verdana", 1, 10));
+	    GUI.add(width_label);
+	    
+		height_label = new JLabel();
+		height_label.setText("" + picture_height + " [" + (int)Math.ceil(picture_height/8) + "]");
+		height_label.setHorizontalAlignment(SwingConstants.CENTER);
+		height_label.setVerticalAlignment(SwingConstants.CENTER);
+		height_label.setBounds(xpos, ypos+40, width, height);
+		height_label.setFont(new Font("Verdana", 1, 10));
+	    GUI.add(height_label);
+	}
+	
+	private static void refreshLabels() {
+		width_label.setText("" + picture_width + " [" + (int)Math.ceil(picture_width/8) + "]");
+		height_label.setText("" + picture_height + " [" + (int)Math.ceil(picture_height/8) + "]");
+	}
+	
+	private void prepareButton(JButton button, int xpos, int ypos, int width, int height) {
+		button.setMargin(new Insets(0,0,0,0));
+		button.setFont(new Font("Arial", Font.BOLD, 12));
+		button.setLocation(xpos, ypos);
+		button.setSize(width, height);
+	}
+	
+	private void prepareTextInput() {
+        number_format = NumberFormat.getNumberInstance();
+        number_format.setMaximumIntegerDigits(5);
+        x_textfield = new JFormattedTextField(number_format);
+        x_textfield.setColumns(5);
+        x_textfield.setLocation(10, 150);
+        x_textfield.setSize(80, 25);
+        y_textfield = new JFormattedTextField(number_format);
+        y_textfield.setColumns(5);
+        y_textfield.setLocation(10, 195);
+        y_textfield.setSize(80, 25);
 	}
 	
 	/////////////////////
@@ -150,6 +232,9 @@ public class convertImg extends JFrame implements ActionListener{
     		return;
     	int w = m_imgInput.getWidth(null);
     	int h = m_imgInput.getHeight(null);
+    	
+    	picture_width = w;
+    	picture_height = h;
 
     	int inputValues[] = new int[w*h];
     	
@@ -414,6 +499,29 @@ public class convertImg extends JFrame implements ActionListener{
 		return result;
 	}
 	
+	//////////////////////////
+	// PREVIEWING 8x8 BLOCK //
+	//////////////////////////
+	
+	private static void createPreview() {
+        JFrame frame = new JFrame("Block Preview");
+
+        //Create and set up the content pane.
+        convertImg demo = new convertImg();
+        frame.setContentPane(demo.createContentPane());
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(window_width, window_height);
+        frame.setVisible(true);
+    }
+    
+    private static JPanel preparePreview() {
+    	
+    }
+    
+    private static JPanel previewMatrix() {
+    	
+    }
+	
     // This is the new ActionPerformed Method.
     // It catches any events with an ActionListener attached.
     // Using an if statement, we can determine which button was pressed
@@ -437,6 +545,7 @@ public class convertImg extends JFrame implements ActionListener{
         // convert RGB to YUV 
         else if(evnt.getSource() == m_btConvert){
         	conversion();
+        	refreshLabels();
         }
         // button SAVE is clicked
         else if(evnt.getSource() == m_btSave){
@@ -464,6 +573,13 @@ public class convertImg extends JFrame implements ActionListener{
         	picture_quality = 2;
         else if (evnt.getSource() == but_low)
         	picture_quality = 3;
+    	
+    	// PREVIEW 8x8 BLOCK
+        else if (evnt.getSource() == but_preview) {
+        	if (picture_width <= 0 || picture_height <= 0)
+        		return;
+        	
+        }
     }
 	
     private static void createAndShowGUI() {
