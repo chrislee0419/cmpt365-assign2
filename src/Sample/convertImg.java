@@ -18,6 +18,8 @@ import javax.imageio.*;
 
 public class convertImg extends JFrame implements ActionListener{
 	
+	static final long serialVersionUID = 1;
+	
 	JButton m_btOpen, m_btSave, m_btConvert,
 			but_default, but_high, but_recommended, but_low,
 			but_preview; 

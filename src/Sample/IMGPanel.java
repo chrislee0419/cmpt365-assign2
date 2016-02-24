@@ -7,6 +7,8 @@ import javax.swing.JPanel;
 
 //class to draw the image into the panel
 public class IMGPanel extends JPanel {
+	
+	static final long serialVersionUID = 2;
 	  
 	protected Image m_img = null;
 	  
