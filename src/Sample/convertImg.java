@@ -415,13 +415,13 @@ public class convertImg extends JFrame implements ActionListener{
 
     // split component into 8x8 block matrices
 	private static float[] compressComponent(float[] arr, int w, int h, int quality, boolean save) {
-        Matrix[][] mat = Matrix.array1DTo2DMatrix(arr, w, h);
+		Matrix[][] mat = Matrix.array1DTo2DMatrix(arr, w, h);
         Matrix[][] dct = new Matrix[h][w];
         Matrix[][] quantized = new Matrix[h][w];
         Matrix temp;
         
         if (save)
-        	orig_mat = mat;
+        	orig_mat = Matrix.array1DTo2DMatrix(arr, w, h);
         
         for (int i = 0; i < Math.ceil((double)h/8); i++) {
         	for (int j = 0; j < Math.ceil((double)w/8); j++) {
@@ -524,7 +524,7 @@ public class convertImg extends JFrame implements ActionListener{
         
         frame.setContentPane(preparePreview(parsed_x, parsed_y));
         //frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1650, 500);
+        frame.setSize(1700, 500);
         frame.setVisible(true);
     }
     
