@@ -2,6 +2,7 @@ package Sample;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.awt.AWTException;
 import java.awt.Color;
@@ -516,54 +517,52 @@ public class convertImg extends JFrame implements ActionListener{
 	//////////////////////////
 	
 	private static void createPreview(int parsed_x, int parsed_y) {
-    	if (parsed_x < 0 || parsed_y < 0)
+    	if (parsed_x < 0 || parsed_y < 0 || parsed_x > Math.ceil(picture_width/8f) || parsed_y > Math.ceil(picture_height/8f))
     		return;
     	
-        JFrame frame = new JFrame("Preview of block (" + parsed_x + ", " + parsed_y + ")");
-        frame.setLayout(null);
+        JFrame frame = new JFrame("Displaying Y Component of Block: (" + parsed_x + ", " + parsed_y + ")");
         
         frame.setContentPane(preparePreview(parsed_x, parsed_y));
         //frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1250, 350);
+        frame.setSize(1650, 500);
         frame.setVisible(true);
     }
     
     private static JPanel preparePreview(int parsed_x, int parsed_y) {
     	JPanel panel = new JPanel();
-    	JPanel element;
+    	panel.setLayout(null);
     	
-    	element = preview2DMatrixElement(orig_mat, 5, 5, parsed_x, parsed_y, "Original Y Values");
-    	panel.add(element);
-    	element = preview2DMatrixElement(dct_mat, 315, 5, parsed_x, parsed_y, "Raw DCT Coefficients");
-    	panel.add(element);
-    	element = preview2DMatrixElement(quantized_mat, 625, 5, parsed_x, parsed_y, "Quantized DCT Coefficients");
-    	panel.add(element);
-    	element = preview2DMatrixElement(compressed_mat, 930, 5, parsed_x, parsed_y, "Original Y Values");
-    	panel.add(element);
+    	preview2DMatrixElement(panel, orig_mat, 5, 5, parsed_x, parsed_y, "Original Y Values");
+    	preview2DMatrixElement(panel, dct_mat, 415, 5, parsed_x, parsed_y, "Raw DCT Coefficients");
+    	preview2DMatrixElement(panel, quantized_mat, 825, 5, parsed_x, parsed_y, "Quantized DCT Coefficients");
+    	preview2DMatrixElement(panel, compressed_mat, 1230, 5, parsed_x, parsed_y, "Output Y Values");
     	
 	    panel.setOpaque(true);
     	
     	return panel;
     }
     
-    private static JPanel preview2DMatrixElement(Matrix[][] mat, int x_pos, int y_pos, int x, int y, String label) {
+    private static void preview2DMatrixElement(JPanel panel, Matrix[][] mat, int x_pos, int y_pos, int x, int y, String label) {
+    	DecimalFormat df = new DecimalFormat();
+    	df.setMaximumFractionDigits(1);
+    	
     	JPanel mat_panel = new JPanel();
 	    mat_panel.setLayout(null);
 	    mat_panel.setLocation(x_pos, y_pos);
-	    mat_panel.setSize(300, 320);
+	    mat_panel.setSize(400, 420);
 	    mat_panel.setBorder(BorderFactory.createLineBorder(Color.black));
 	    
-	    prepareLabel(mat_panel, 0, 0, 300, 20, label, 20, false);
+	    prepareLabel(mat_panel, 0, 0, 400, 20, label, 18, false);
 
 	    float[] arr = mat[y][x].matrix1Dto1DArray();
 	    
 	    for (int i = 0; i < 64; i++) {
 	    	int xx = i % 8;
 	    	int yy = i / 8;
-	    	prepareLabel(mat_panel, 10 + (xx*35), 10 + (yy*35), 35, 35, "" + arr[i], 12, true);
+	    	prepareLabel(mat_panel, 8 + (xx*48), 28 + (yy*48), 48, 48, df.format(arr[i]), 11, true);
 	    }
-	    
-        return mat_panel;
+
+    	panel.add(mat_panel);
     }
 	
     // This is the new ActionPerformed Method.
