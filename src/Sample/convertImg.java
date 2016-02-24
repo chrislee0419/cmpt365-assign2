@@ -25,17 +25,19 @@ public class convertImg extends JFrame implements ActionListener{
 				compressed_y_panel, compressed_u_panel, compressed_v_panel;
 	BufferedImage 	m_imgInput, m_imgOutputY, m_imgOutputU, m_imgOutputV,
 					compressed_y_buffer, compressed_u_buffer, compressed_v_buffer, compressed_output_buffer;
-	JFormattedTextField x_textfield, y_textfield;
+	static JFormattedTextField x_textfield, y_textfield;
 	static JLabel width_label, height_label;
 	
 	//Create a file chooser
 	final JFileChooser m_fc = new JFileChooser();
 	
 	static int picture_width = 0, picture_height = 0;
-	float[] y_values, u_values, v_values;
+	float[] y_values, u_values, v_values, compressed_y;
 	int picture_quality = 0;
+	static Matrix[][] orig_mat;
     static Matrix[][] dct_mat;
     static Matrix[][] quantized_mat;
+	static Matrix[][] compressed_mat;
     
     final static int window_width = 1800, window_height = 980;
 
@@ -138,13 +140,13 @@ public class convertImg extends JFrame implements ActionListener{
 	    prepareTextInput();
         block_preview_panel.add(x_textfield);
         block_preview_panel.add(y_textfield);
-	    prepareLabel(block_preview_panel, 0, 5, 100, 20, "INFO", 14);
-	    prepareLabel(block_preview_panel, 0, 25, 100, 20, "Width [8x8]", 12);
+	    prepareLabel(block_preview_panel, 0, 5, 100, 20, "INFO", 14, false);
+	    prepareLabel(block_preview_panel, 0, 25, 100, 20, "Width [8x8]", 12, false);
 	    prepareRefreshableLabels(block_preview_panel, 0, 45, 100, 15);
-	    prepareLabel(block_preview_panel, 0, 65, 100, 20, "Height [8x8]", 12);
-	    prepareLabel(block_preview_panel, 0, 110, 100, 20, "PREVIEW Y", 14);
-	    prepareLabel(block_preview_panel, 0, 130, 100, 20, "X Block", 12);
-	    prepareLabel(block_preview_panel, 0, 175, 100, 20, "Y Block", 12);
+	    prepareLabel(block_preview_panel, 0, 65, 100, 20, "Height [8x8]", 12, false);
+	    prepareLabel(block_preview_panel, 0, 110, 100, 20, "PREVIEW Y", 14, false);
+	    prepareLabel(block_preview_panel, 0, 130, 100, 20, "X Block", 12, false);
+	    prepareLabel(block_preview_panel, 0, 175, 100, 20, "Y Block", 12, false);
 	    but_preview = new JButton("Preview 8x8");
 	    prepareButton(but_preview, 10, 240, 80, 50);
 	    but_preview.addActionListener(this);
@@ -165,18 +167,19 @@ public class convertImg extends JFrame implements ActionListener{
         panel.setBorder(BorderFactory.createLineBorder(Color.black));
 	    GUI.add(panel);
 	    
-	    prepareLabel(GUI, xpos+20, ypos+height, width-40, 30, label, 16);
+	    prepareLabel(GUI, xpos+20, ypos+height, width-40, 30, label, 16, false);
 	    
 	    return panel;
 	}
 	
-	private static void prepareLabel(JPanel GUI, int xpos, int ypos, int width, int height, String label, int textsize) {
+	private static void prepareLabel(JPanel GUI, int xpos, int ypos, int width, int height, String label, int textsize, boolean border) {
 		JLabel input_label = new JLabel();
 	    input_label.setText(label);
 	    input_label.setHorizontalAlignment(SwingConstants.CENTER);
 	    input_label.setVerticalAlignment(SwingConstants.CENTER);
 	    input_label.setBounds(xpos, ypos, width, height);
 	    input_label.setFont(new Font("Verdana", 1, textsize));
+	    if (border) input_label.setBorder(BorderFactory.createLineBorder(Color.black));
 	    GUI.add(input_label);
 	}
 	
@@ -276,9 +279,9 @@ public class convertImg extends JFrame implements ActionListener{
         }
         
         // use JPEG compression
-        float[] compressed_y = compressComponent(y_values, w, h, y_quality);
-        float[] compressed_u = compressComponent(u_values_sub, w_sub, h_sub, uv_quality);
-        float[] compressed_v = compressComponent(v_values_sub, w_sub, h_sub, uv_quality);
+        compressed_y = compressComponent(y_values, w, h, y_quality, true);
+        float[] compressed_u = compressComponent(u_values_sub, w_sub, h_sub, uv_quality, false);
+        float[] compressed_v = compressComponent(v_values_sub, w_sub, h_sub, uv_quality, false);
         
         // expand the subsampled components back to their original resolution
         float[] expanded_compressed_u = expandSubsample(compressed_u, w, h);
@@ -410,20 +413,29 @@ public class convertImg extends JFrame implements ActionListener{
 	}
 
     // split component into 8x8 block matrices
-	private static float[] compressComponent(float[] arr, int w, int h, int quality) {
+	private static float[] compressComponent(float[] arr, int w, int h, int quality, boolean save) {
         Matrix[][] mat = Matrix.array1DTo2DMatrix(arr, w, h);
-        dct_mat = new Matrix[h][w];
-        quantized_mat = new Matrix[h][w];
+        Matrix[][] dct = new Matrix[h][w];
+        Matrix[][] quantized = new Matrix[h][w];
         Matrix temp;
+        
+        if (save)
+        	orig_mat = mat;
         
         for (int i = 0; i < Math.ceil((double)h/8); i++) {
         	for (int j = 0; j < Math.ceil((double)w/8); j++) {
-        		dct_mat[i][j] = Transform.dctransform(mat[i][j]);
-        		quantized_mat[i][j] = Quantization.quantize(dct_mat[i][j], quality);
-        		temp = Quantization.inv_quantize(quantized_mat[i][j], quality);
-        		mat[i][j] = Transform.inv_dctransform(temp);
+        		dct[i][j] = Transform.dctransform(mat[i][j]);
+        		temp = Quantization.quantize(dct[i][j], quality);
+        		quantized[i][j] = Quantization.inv_quantize(temp, quality);
+        		mat[i][j] = Transform.inv_dctransform(quantized[i][j]);
         		mat[i][j].normalizeValues();
         	}
+        }
+        
+        if (save) {
+        	dct_mat = dct;
+        	quantized_mat = quantized;
+        	compressed_mat = mat;
         }
         
         return Matrix.matrix2DTo1DArray(mat, w, h);
@@ -503,23 +515,55 @@ public class convertImg extends JFrame implements ActionListener{
 	// PREVIEWING 8x8 BLOCK //
 	//////////////////////////
 	
-	private static void createPreview() {
-        JFrame frame = new JFrame("Block Preview");
-
-        //Create and set up the content pane.
-        convertImg demo = new convertImg();
-        frame.setContentPane(demo.createContentPane());
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(window_width, window_height);
+	private static void createPreview(int parsed_x, int parsed_y) {
+    	if (parsed_x < 0 || parsed_y < 0)
+    		return;
+    	
+        JFrame frame = new JFrame("Preview of block (" + parsed_x + ", " + parsed_y + ")");
+        frame.setLayout(null);
+        
+        frame.setContentPane(preparePreview(parsed_x, parsed_y));
+        //frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1250, 350);
         frame.setVisible(true);
     }
     
-    private static JPanel preparePreview() {
+    private static JPanel preparePreview(int parsed_x, int parsed_y) {
+    	JPanel panel = new JPanel();
+    	JPanel element;
     	
+    	element = preview2DMatrixElement(orig_mat, 5, 5, parsed_x, parsed_y, "Original Y Values");
+    	panel.add(element);
+    	element = preview2DMatrixElement(dct_mat, 315, 5, parsed_x, parsed_y, "Raw DCT Coefficients");
+    	panel.add(element);
+    	element = preview2DMatrixElement(quantized_mat, 625, 5, parsed_x, parsed_y, "Quantized DCT Coefficients");
+    	panel.add(element);
+    	element = preview2DMatrixElement(compressed_mat, 930, 5, parsed_x, parsed_y, "Original Y Values");
+    	panel.add(element);
+    	
+	    panel.setOpaque(true);
+    	
+    	return panel;
     }
     
-    private static JPanel previewMatrix() {
-    	
+    private static JPanel preview2DMatrixElement(Matrix[][] mat, int x_pos, int y_pos, int x, int y, String label) {
+    	JPanel mat_panel = new JPanel();
+	    mat_panel.setLayout(null);
+	    mat_panel.setLocation(x_pos, y_pos);
+	    mat_panel.setSize(300, 320);
+	    mat_panel.setBorder(BorderFactory.createLineBorder(Color.black));
+	    
+	    prepareLabel(mat_panel, 0, 0, 300, 20, label, 20, false);
+
+	    float[] arr = mat[y][x].matrix1Dto1DArray();
+	    
+	    for (int i = 0; i < 64; i++) {
+	    	int xx = i % 8;
+	    	int yy = i / 8;
+	    	prepareLabel(mat_panel, 10 + (xx*35), 10 + (yy*35), 35, 35, "" + arr[i], 12, true);
+	    }
+	    
+        return mat_panel;
     }
 	
     // This is the new ActionPerformed Method.
@@ -576,9 +620,13 @@ public class convertImg extends JFrame implements ActionListener{
     	
     	// PREVIEW 8x8 BLOCK
         else if (evnt.getSource() == but_preview) {
+        	String parsed_x = x_textfield.getText();
+        	String parsed_y = y_textfield.getText();
         	if (picture_width <= 0 || picture_height <= 0)
         		return;
-        	
+        	if (parsed_x == null || parsed_y == null || parsed_x.equals("") || parsed_y.equals(""))
+        		return;
+        	createPreview(Integer.parseInt(parsed_x), Integer.parseInt(parsed_y));
         }
     }
 	
@@ -589,7 +637,6 @@ public class convertImg extends JFrame implements ActionListener{
         //Create and set up the content pane.
         convertImg demo = new convertImg();
         frame.setContentPane(demo.createContentPane());
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(window_width, window_height);
         frame.setVisible(true);
     }
